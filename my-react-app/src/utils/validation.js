@@ -24,13 +24,12 @@ export const validatePass = (password)=>{
 }
 
 export const validateFieldsReq = (formData)=>{
-    const generalError = {}
-    const hasEmptyField = Object.values(formData).some(value => !value);
-    if(hasEmptyField){
-        generalError.message = 'All fields are required'
-        return generalError;
-    }
-    return null;
+    const fieldErrors = {};
+    if (!formData.firstName) fieldErrors.firstName = 'First Name is required';
+    if (!formData.lastName) fieldErrors.lastName = 'Last Name is required';
+    if (!formData.email) fieldErrors.email = 'Email is required';
+    if (!formData.password) fieldErrors.password = 'Password is required';
+    return Object.keys(fieldErrors).length > 0 ? fieldErrors : null;
 }
 
 export const validateOtp = (otp)=>{

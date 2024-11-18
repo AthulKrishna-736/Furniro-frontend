@@ -15,7 +15,6 @@ const SignUpForm = () => {
         email:'',
         password:'',
     })
-    const [generalError, setGeneralErrors] = useState('')
     const [errors, setErrors] = useState({});
     const { firstName, lastName, email, password } = formData
 
@@ -24,8 +23,6 @@ const SignUpForm = () => {
             ...formData,
             [e.target.name] : e.target.value
         });
-
-        if(generalError){ setGeneralErrors('') } //clears general errors while event change
 
         if(errors[e.target.name]){
             setErrors((prevErrors)=>({
@@ -36,14 +33,11 @@ const SignUpForm = () => {
     }
 
     const validateForm = ()=>{
-        //general error check
-        const fieldReqError = validateFieldsReq(formData);
-        
-        if(fieldReqError){
-            setGeneralErrors(fieldReqError.message);
+        // Check for required fields
+        const fieldReqErrors = validateFieldsReq(formData);
+        if (fieldReqErrors) {
+            setErrors(fieldReqErrors);
             return false;
-        }else{
-            setGeneralErrors('');
         }
 
         //specific field error check
@@ -66,6 +60,9 @@ const SignUpForm = () => {
         try {
             const response = await axiosInstance.post('/user/signup',formData);
             showSuccessToast(response.data.message)
+            navigate('/otpverify',{
+                state: { email: response.data.user.email },
+            })
             setFormData({
                 firstName:'',
                 lastName:'',
@@ -84,11 +81,6 @@ const SignUpForm = () => {
         <Typography variant="h4" gutterBottom>
             Signup
         </Typography>
-        {generalError && (
-            <Typography variant='body2' color='error' gutterBottom>
-                {generalError}
-            </Typography>
-        )}
         <form onSubmit={handleSubmit}>
             <TextField
                 fullWidth

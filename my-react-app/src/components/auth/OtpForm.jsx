@@ -8,12 +8,14 @@ import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 const OtpForm = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [loading, setLoading] = useState(true);
     const [otp, setOtp] = useState(['','','','','','']);
     const [error, setError] = useState('');
     const [countdown, setCountdown] = useState('');
     const [canResend, setCanResend] = useState(false);
 
     const email = location.state?.email;
+    console.log(email)
 
     const startCoundown = (expiryTime)=>{
       const timer = setInterval(()=>{
@@ -37,6 +39,13 @@ const OtpForm = () => {
     }
 
     useEffect(()=>{
+
+      if(!email){
+        navigate('/login',{ replace:true });
+        return;
+      }
+      setLoading(false);
+
       axiosInstance.post('/user/otpVerify',{ email })
 
       .then((response) =>{
@@ -49,9 +58,10 @@ const OtpForm = () => {
       .catch((error) =>{
         console.error('Error fetching otp ',error)
       }) 
-    },[email])
-  
+    },[email, navigate])
 
+    if(loading) return null;
+  
     //handle inputchange of otp entering
     const handleChange = (e, index)=>{
         let value = e.target.value
@@ -102,8 +112,8 @@ const OtpForm = () => {
         showSuccessToast(response.data.message)
         //routing to home page
         setTimeout(()=>{
-          navigate('/home')
-        },2000)
+          navigate('/login')
+        },1000)
 
       }else{
           setError('Please enter a valid 6-digit OTP')
@@ -155,6 +165,7 @@ const OtpForm = () => {
                 e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'; // Focus shadow
               }}
               onBlur={(e) => {
+
                 e.target.style.borderColor = '#ddd'; // Reset border color
                 e.target.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)'; // Reset shadow
               }}

@@ -24,7 +24,5 @@ dist-ssr
 *.sw?
 
 #version and packages
-package-lock.json
-package.json
 eslint.config.js
 README.modules
