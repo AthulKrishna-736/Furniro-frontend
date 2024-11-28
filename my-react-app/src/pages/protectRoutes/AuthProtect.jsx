@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axiosInstance';
+import axiosInstance from '../../utils/axiosInstance';
 
-const ProtectedRoute = ({ children }) => {
+const AuthProtect = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(()=>{
@@ -21,14 +21,14 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const userId = localStorage.getItem('userId'); // Get userId from localStorage
-    if (!userId) {
-      console.log('User is not authenticated. Redirecting to /login...');
-      navigate('/login'); // Redirect to login if no userId is found in localStorage
+    if (userId) {
+      console.log('User is authenticated, redirecting to /home...');
+      navigate('/home'); // Redirect to home if user is authenticated
     }
   }, [navigate]);
 
-  // If user is authenticated (userId is in localStorage), render children (protected content)
-  return localStorage.getItem('userId') ? children : null;
+  // If userId is found in localStorage, redirect to home. Else, show login/signup
+  return !localStorage.getItem('userId') ? children : null;
 };
 
-export default ProtectedRoute;
+export default AuthProtect;

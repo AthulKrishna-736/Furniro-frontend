@@ -1,15 +1,15 @@
 import React from 'react'
-import SignUpForm from '../components/auth/SignupForm'
+import OtpForm from '../../components/auth/OtpForm'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const SignUpPage = () => {
+const OtpPage = () => {
   return (
     <div>
-      <SignUpForm/>
-      <ToastContainer/>
+        <OtpForm/>
+        <ToastContainer/>
     </div>
   )
 }
 
-export default SignUpPage
+export default OtpPage

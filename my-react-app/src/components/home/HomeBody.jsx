@@ -1,27 +1,56 @@
-import React from 'react'
-import { Box, Typography } from '@mui/material';
+import React from 'react';
+import { Box, Typography, Grid } from '@mui/material';
+import ProductCard from '../products/card/productCard';
 
-const HomeBody = () => {
+const HomeBody = ({ products = [] }) => {
   return (
     <Box sx={{ padding: '20px', textAlign: 'center' }}>
-      {/* Headline */}
-      <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '20px', color: '#333' }}>
-        Choose the Best, Find Your Perfect Piece in Our Store.
-      </Typography>
-
-      {/* Banner Image */}
+      {/* Product Grid */}
       <Box
         sx={{
-          height: '300px',
-          backgroundImage: `url('https://t4.ftcdn.net/jpg/05/08/17/01/360_F_508170187_4Oonk4IG8u9eyfwSUvTASkT8hl71vRX2.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderRadius: '8px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '20px',
         }}
-      />
+        >
+        <Typography
+            variant="h5"
+            sx={{
+            fontWeight: 'bold',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            position: 'relative',
+            paddingBottom: '8px',
+            '&:after': {
+                content: '""',
+                position: 'absolute',
+                width: '50%', // Adjust width of the underline
+                height: '2px', // Thickness of the underline
+                backgroundColor: '#ddd',
+                bottom: '0', // Align underline at the bottom
+                left: '25%', // Center the underline
+            },
+            }}
+            >
+            Featured Products
+        </Typography>
+        </Box>
+
+      {/* Display a message if there are no products */}
+      {products.length === 0 ? (
+        <Typography>No products available.</Typography>
+      ) : (
+        <Grid container spacing={3} justifyContent="center">
+          {products.map((product) => (
+            <Grid item key={product._id} xs={12} sm={6} md={4} lg={3}>
+              <ProductCard product={product} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Box>
-  )
-}
+  );
+};
 
 export default HomeBody;

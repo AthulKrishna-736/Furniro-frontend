@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button, TextField, Typography, Container, Box, InputAdornment, IconButton, Divider } from '@mui/material'
-import { setUserId } from "../../redux/features/userAuth";
+import { setAdminId, setUserId } from "../../redux/features/userAuth";
 import { validateEmail, validatePass } from "../../utils/validation";
 import axiosInstance from "../../utils/axiosInstance";
 import { useDispatch } from "react-redux";
@@ -11,7 +11,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
 
 
-const LoginForm = () => {
+const LoginForm = ({ isAdmin = false }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -61,21 +61,28 @@ const LoginForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) return; //stops if form is invalid
+        if (!validateForm()) return; 
 
         try {
             console.log('user data is sent...')
-            const response = await axiosInstance.post('/user/login', formData)
+            const apiUrl = isAdmin ?'/admin/login' : '/user/login';
+            const response = await axiosInstance.post(apiUrl, formData);
 
-            console.log(response.data.user.id)
-            const userId = localStorage.setItem('userId', response.data.user.id);
-            dispatch(setUserId(userId))
-            navigate('/home')
-            console.log(response.data)
+            console.log(response?.data?.user?.id)
+            if (isAdmin) {
+                const adminId = localStorage.setItem('adminId', response?.data?.user?.id);
+                dispatch(setAdminId(adminId)); 
+                navigate('/admin-dashboard'); 
+            } else {
+                const userId = localStorage.setItem('userId', response?.data?.user?.id);                
+                dispatch(setUserId(userId));
+                navigate('/home'); 
+            }
+            console.log(response?.data)
 
         } catch (error) {
             showErrorToast(error.response.data.message)
-            console.log(error.response.data)
+            console.log(error.response?.data)
         }
     }
 
@@ -88,7 +95,7 @@ const LoginForm = () => {
         <Container maxWidth="xs">
             <Box sx={{ mt: 8, textAlign: 'center' }}>
                 <Typography variant="h4" gutterBottom>
-                    Login
+                    {!isAdmin ? 'Login' : 'Admin Login'}
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -130,39 +137,49 @@ const LoginForm = () => {
                     </Button>
                 </form>
 
-                <Box sx={{ mt: 2 }}>
-                    <Typography variant="body2">
-                        Don't have an account?{" "}
-                        <Button onClick={() => navigate('/signup')} sx={{ textTransform: 'none', padding: 0, color: "#1976d2" }}>
-                            Sign Up
-                        </Button>
-                    </Typography>
-                </Box>
-
-                <Box sx={{ mt: 2, textAlign: 'center' }}>
-                    <Divider sx={{ my: 2 }}><Typography variant="body2">OR</Typography></Divider>
-
+                {!isAdmin && (
+            <>
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                Don't have an account?{" "}
                     <Button
-                        variant="outlined"
-                        fullWidth
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderColor: '#4285F4',
-                            color: '#4285F4',
-                            '&:hover': {
-                                borderColor: '#4285F4',
-                                backgroundColor: '#4285F4',
-                                color: 'white',
-                            },
-                        }}
-                        onClick={handleGoogleLogin}
+                    onClick={() => navigate('/signup')}
+                    sx={{ textTransform: 'none', padding: 0, color: "#1976d2" }}
                     >
-                        <GoogleIcon sx={{ mr: 1 }} />
-                        Login with Google
+                        Sign Up
+                    </Button>
+                </Typography>
+            </Box>
+
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2">OR</Typography>
+                </Divider>
+
+                <Button
+                variant="outlined"
+                fullWidth
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderColor: '#4285F4',
+                    color: '#4285F4',
+                    '&:hover': {
+                        borderColor: '#4285F4',
+                        backgroundColor: '#4285F4',
+                        color: 'white',
+                    },
+                }}
+                onClick={handleGoogleLogin}
+                >
+                    <GoogleIcon sx={{ mr: 1 }} />
+                     Login with Google
                     </Button>
                 </Box>
+                </>
+            )}
+ 
             </Box>
         </Container>
     );

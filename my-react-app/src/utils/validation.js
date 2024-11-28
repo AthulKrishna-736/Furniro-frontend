@@ -41,3 +41,44 @@ export const validateOtp = (otp)=>{
     const hasError = errors.some(error => error != '');
     return hasError ? errors : '';
 };
+
+export const validateProductName = (name) => {
+    const namePattern = /^[a-zA-Z0-9\- ]{2,}$/;
+    const isValidName = namePattern.test(name);
+    return isValidName ? '' : 'Product name must contain only letters and be at least 2 characters long.';
+};
+
+export const validateProductDescription = (description) => {
+    if (!description) return 'Product description is required.';
+    if (description.length < 10) return 'Product description must be at least 10 characters long.';
+    return '';
+};
+
+export const validatePrice = (price) => {
+    if (price === '' || price === null) return 'Price is required.';
+    if (price <= 0) return 'Price must be greater than 0.';
+    return '';
+};
+
+export const validateStockQuantity = (quantity) => {
+    if (!quantity) return 'Stock quantity is required.';
+    if (quantity < 1) return 'Stock quantity must be greater than 0.';
+    return '';
+};
+
+export const validateCategoryName = (name) => {
+    if (!name) return 'Category name is required.';
+    const namePattern = /^[a-zA-Z\s]{2,}$/; 
+    const isValid = namePattern.test(name);
+    return isValid ? '' : 'Category name must contain only letters and be at least 2 characters long.';
+  };
+  
+ export const validateCategoryDescription = (description) => {
+    if (!description) return 'Description is required.';
+    if (description.length < 10) return 'Description must be at least 10 characters long.';
+    return '';
+  };
+
+
+
+  

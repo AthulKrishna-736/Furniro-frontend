@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
     userId:null,
+    adminId:null,
 }
 
 const userAuthSlice = createSlice({
@@ -11,13 +12,19 @@ const userAuthSlice = createSlice({
         setUserId:(state, action)=>{
             state.userId = action.payload;
         },
+        setAdminId:(state, action)=>{
+            state.adminId = action.payload;
+
+        },
         logoutUser:(state)=>{
             state.userId = null;
+            state.adminId = null;
+            localStorage.removeItem('adminId');
             localStorage.removeItem('userId');
         }
     }
 })
 
-export const { setUserId, logoutUser } = userAuthSlice.actions;
+export const { setUserId, logoutUser, setAdminId } = userAuthSlice.actions;
 
 export default userAuthSlice.reducer;

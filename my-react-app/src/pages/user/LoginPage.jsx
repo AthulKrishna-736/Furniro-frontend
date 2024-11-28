@@ -1,15 +1,15 @@
 import React from 'react'
-import OtpForm from '../components/auth/OtpForm'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import LoginForm from '../../components/auth/LoginForm'
 
-const OtpPage = () => {
+const LoginPage = () => {
   return (
     <div>
-        <OtpForm/>
+        <LoginForm />
         <ToastContainer/>
     </div>
   )
 }
 
-export default OtpPage
+export default LoginPage;

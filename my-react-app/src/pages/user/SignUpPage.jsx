@@ -1,15 +1,15 @@
 import React from 'react'
+import SignUpForm from '../../components/auth/SignupForm'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import LoginForm from '../components/auth/LoginForm'
 
-const LoginPage = () => {
+const SignUpPage = () => {
   return (
     <div>
-        <LoginForm />
-        <ToastContainer/>
+      <SignUpForm/>
+      <ToastContainer/>
     </div>
   )
 }
 
-export default LoginPage;
+export default SignUpPage
