@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button, TextField, Typography, Container, Box, InputAdornment, IconButton, Divider } from '@mui/material'
 import { setAdminId, setUserId } from "../../redux/features/userAuth";
@@ -86,10 +86,26 @@ const LoginForm = ({ isAdmin = false }) => {
         }
     }
 
-    const handleGoogleLogin = () => {
-        // Handle Google login here
-        console.log('Google login button clicked');
+    const handleGoogleLogin = async() => {
+        console.log("Google login button clicked");
+        navigate("/oauth/start");
     };
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        const userId = params.get("userId");
+    
+        if (token && userId) {
+            localStorage.setItem("userId", userId);
+            localStorage.setItem("token", token);
+            dispatch(setUserId(userId));
+    
+            window.history.replaceState({}, document.title, window.location.pathname);
+    
+            navigate("/home");
+        }
+    }, [dispatch, navigate]);
 
     return (
         <Container maxWidth="xs">

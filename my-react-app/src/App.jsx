@@ -16,6 +16,10 @@ import CategoryPage from './pages/admin/CategoryPage'
 import UserListPage from './pages/admin/UserListPage'
 import ProductDetailPage from './pages/user/ProductDetailPage'
 import ProductsPageUser from './pages/user/ProductsPageUser'
+import GoogleOAuthStart from './components/auth/GoogleAuth'
+import GoogleOAuthCallback from './components/auth/GoogleCallback'
+import GoogleRedirect from './components/auth/GoogleRedirect'
+import ProtectGoogle from './pages/protectRoutes/ProtectGoogle'
 
 
 const App = () => {
@@ -25,8 +29,11 @@ const App = () => {
       <Routes>
 
       <Route path='/login' element={<AuthProtect> <LoginPage /> </AuthProtect>} />
-        <Route path='/signup' element={<AuthProtect> <SignUpPage /> </AuthProtect>} />
-        <Route path='/otpverify' element={<AuthProtect> <OtpPage /> </AuthProtect>} />
+      <Route path='/signup' element={<AuthProtect> <SignUpPage /> </AuthProtect>} />
+      <Route path='/otpverify' element={<AuthProtect> <OtpPage /> </AuthProtect>} />
+      <Route path="/oauth/start" element={<ProtectGoogle> <GoogleOAuthStart /> </ProtectGoogle>} />
+      <Route path="/oauth/callback" element={<ProtectGoogle> <GoogleOAuthCallback /> </ProtectGoogle>} />
+      <Route path='/google-success' element={ <ProtectGoogle> <GoogleRedirect/> </ProtectGoogle> } />
 
         <Route path='/home' element={
           <ProtectedRoute>
