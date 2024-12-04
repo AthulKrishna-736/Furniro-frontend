@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box } from '@mui/material';
 import axiosInstance from '../../utils/axiosInstance';
-import ProductForm from './ProductForm'; // Import the ProductForm
+import ConfirmationAlert from '../admin/Alertmsg'
+import ProductForm from './ProductForm'; 
 import { toast } from 'react-toastify';
 
 const ProductTable = ({ categories }) => {
     const [products, setProducts] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [productToEdit, setProductToEdit] = useState(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [productToBlock, setProductToBlock] = useState(null);
 
     //fetch products
     const fetchProducts = async () => {
@@ -57,6 +60,27 @@ const ProductTable = ({ categories }) => {
         setOpenModal(true)
     };
     const handleCloseModal = () => setOpenModal(false);
+
+        // Open confirmation alert
+        const confirmBlock = (productId) => {
+            setProductToBlock(productId);
+            setAlertOpen(true);
+        };
+    
+        // Close confirmation alert
+        const closeAlert = () => {
+            setAlertOpen(false);
+            setProductToBlock(null);
+        };
+    
+        // Handle confirmation
+        const handleConfirmBlock = () => {
+            if (productToBlock) {
+                handleBlockProduct(productToBlock);
+            }
+            closeAlert();
+        };
+    
 
     return (
         <Box sx={{ padding: 3 }}>
@@ -117,7 +141,7 @@ const ProductTable = ({ categories }) => {
                             <Button
                             variant="outlined"
                             color={product.isBlocked ? 'success' : 'error'}
-                            onClick={() => handleBlockProduct(product._id)}
+                            onClick={() => confirmBlock(product._id)}
                             >
                             {product.isBlocked ? 'Unblock' : 'Block'}
                             </Button>
@@ -145,6 +169,14 @@ const ProductTable = ({ categories }) => {
                 productToEdit={productToEdit} 
                 />
             )}
+                {/* Reusable Confirmation Alert */}
+                <ConfirmationAlert
+                open={alertOpen}
+                onClose={closeAlert}
+                onConfirm={handleConfirmBlock}
+                title="Block Confirmation"
+                message="Are you sure you want to block/unblock this product?"
+            />
         </Box>
     );
 };

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ConfirmationAlert from '../admin/Alertmsg';
 import {
   Table,
   TableBody,
@@ -11,13 +12,27 @@ import {
   Box,
 } from '@mui/material';
 
+
 const CategoryTable = ({ categories, handleEdit, blockCategory }) => {
-  const handleToggleStatus = async (id) => {
+  const [alertOpen, setAlertOpen] = useState(false); 
+  const [categoryIdToBlock, setCategoryIdToBlock] = useState(null);
+
+  const handleToggleStatus = (id) => {
+    setCategoryIdToBlock(id);
+    setAlertOpen(true);
+  };
+
+  const handleConfirmBlock = async () => {
     try {
-      await blockCategory(id);
+      await blockCategory(categoryIdToBlock); 
+      setAlertOpen(false);
     } catch (error) {
       console.error('Failed to update category status:', error.message);
     }
+  };
+
+  const handleCloseAlert = () => {
+    setAlertOpen(false); 
   };
 
   return (
@@ -78,6 +93,15 @@ const CategoryTable = ({ categories, handleEdit, blockCategory }) => {
           </TableBody>
         </Table>
       </TableContainer>
+
+        {/* Confirmation Alert */}
+        <ConfirmationAlert
+        open={alertOpen}
+        onClose={handleCloseAlert}
+        onConfirm={handleConfirmBlock}
+        title="Block/Unblock Confirmation"
+        message="Are you sure you want to block/unblock this category?"
+      />
     </Box>
   );
 };

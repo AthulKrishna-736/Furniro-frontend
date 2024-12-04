@@ -11,9 +11,13 @@ import {
   Box,
   Pagination,
 } from '@mui/material';
+import ConfirmationAlert from '../admin/Alertmsg';
+
 
 const UserTable = ({ users, onBlockUser }) => {
 
+  const [alertOpen, setAlertOpen] = useState(false); 
+  const [userIdToBlock, setUserIdToBlock] = useState(null);
   const[currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -23,6 +27,27 @@ const UserTable = ({ users, onBlockUser }) => {
 
   const startIndex = (currentPage - 1)* itemsPerPage;
   const currentUsers = users.slice(startIndex, startIndex + itemsPerPage);
+
+
+  const handleToggleStatus = (id) => {
+    setUserIdToBlock(id);
+    setAlertOpen(true);
+  };
+
+  const handleConfirmBlock = async () => {
+    try {
+      await onBlockUser(userIdToBlock); 
+      setAlertOpen(false); 
+    } catch (error) {
+      console.error('Failed to update user status:', error.message);
+    }
+  };
+
+  const handleCloseAlert = () => {
+    setAlertOpen(false); 
+  }
+
+
   return (
     <Box sx={{ padding: 3 }}>
       <TableContainer component={Paper} sx={{ marginTop: 2, borderRadius: 2, boxShadow: 3 }}>
@@ -53,7 +78,7 @@ const UserTable = ({ users, onBlockUser }) => {
                   <Button
                     variant="outlined"
                     color={user.isBlocked ? 'success' : 'error'}
-                    onClick={() => onBlockUser(user._id)}
+                    onClick={() => handleToggleStatus(user._id)}
                   >
                     {user.isBlocked ? 'Unblock' : 'Block'}
                   </Button>
@@ -80,6 +105,16 @@ const UserTable = ({ users, onBlockUser }) => {
         />
       </Box> 
       )}
+
+        {/* Confirmation Alert */}
+        <ConfirmationAlert
+        open={alertOpen}
+        onClose={handleCloseAlert}
+        onConfirm={handleConfirmBlock}
+        title="Block/Unblock Confirmation"
+        message="Are you sure you want to block/unblock this user?"
+      />
+
     </Box>
   );
 };

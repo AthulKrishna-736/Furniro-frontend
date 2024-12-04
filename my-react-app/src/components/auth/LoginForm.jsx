@@ -88,7 +88,7 @@ const LoginForm = ({ isAdmin = false }) => {
 
     const handleGoogleLogin = async() => {
         console.log("Google login button clicked");
-        navigate("/oauth/start");
+        navigate("/google-auth");
     };
 
     useEffect(() => {
