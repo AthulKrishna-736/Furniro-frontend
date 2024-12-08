@@ -19,7 +19,7 @@ const UserTable = ({ users, onBlockUser }) => {
   const [alertOpen, setAlertOpen] = useState(false); 
   const [userIdToBlock, setUserIdToBlock] = useState(null);
   const[currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 4;
 
   const handlePageChange = (event, value)=>{
     setCurrentPage(value);

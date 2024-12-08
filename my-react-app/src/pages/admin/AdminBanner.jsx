@@ -21,7 +21,6 @@ const AdminBanner = () => {
     try {
       const response = await axiosInstance.get('/admin/getBanners');
       setBanners(response.data.banner);
-      toast.success(response?.data?.message || 'Banners fetched successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error fetching banners');
       console.error('Error fetching banners:', error);

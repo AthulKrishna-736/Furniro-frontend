@@ -1,13 +1,13 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Provider } from 'react-redux'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import store from './redux/store'
 import LoginPage from './pages/user/LoginPage'
 import SignUpPage from './pages/user/SignUpPage'
-import OtpPage from './pages/user/OtpPage'
 import Home from './pages/user/Home'
 import ProtectedRoute from './pages/protectRoutes/ProtectedRoute'
 import AuthProtect from './pages/protectRoutes/AuthProtect'
-import store from './redux/store'
 import AdminLogin from './pages/admin/AdminLogin'
 import AuthAdmin from './pages/protectRoutes/AuthAdmin'
 import AdminDash from './pages/admin/AdminDash'
@@ -16,40 +16,35 @@ import CategoryPage from './pages/admin/CategoryPage'
 import UserListPage from './pages/admin/UserListPage'
 import ProductDetailPage from './pages/user/ProductDetailPage'
 import ProductsPageUser from './pages/user/ProductsPageUser'
-import GoogleLogin from './pages/user/GoogleLogin'
 import AdminBanner from './pages/admin/AdminBanner'
-
+import LandingPage from './pages/user/LandingPage'
+import ForgotPassPage from './pages/user/ForogotPassPage'
+import WebSocketHandler from './utils/webSockets/WebSocketHandler'
 
 const App = () => {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
+
   return (
+    <GoogleOAuthProvider clientId={googleClientId}>
     <Provider store={store}>
+      <WebSocketHandler />
     <Router>
       <Routes>
 
+      <Route path='/' element={<LandingPage/>} />
+      <Route path='/products' element={ <ProductsPageUser/>  } />
+      <Route path='/product-detail/:productId' element={<ProductDetailPage/>} />
+      <Route path='forgot-password' element={<ForgotPassPage/>} />
+
       <Route path='/login' element={<AuthProtect> <LoginPage /> </AuthProtect>} />
       <Route path='/signup' element={<AuthProtect> <SignUpPage /> </AuthProtect>} />
-      <Route path='/otpverify' element={<AuthProtect> <OtpPage /> </AuthProtect>} />
-      <Route path="/google-auth" element={ <GoogleLogin /> } />
-
 
       <Route path='/home' element={
-          <ProtectedRoute>
-            <Home/>
-          </ProtectedRoute>
-          } />
-
-      <Route path='/products' element={
-            <ProtectedRoute>
-             <ProductsPageUser/>
-            </ProtectedRoute>
-          } />
+        <ProtectedRoute>
+          <Home/>
+        </ProtectedRoute>
+        } />
           
-      <Route path='/product-detail/:productId' element={
-          <ProtectedRoute>
-            <ProductDetailPage/>
-          </ProtectedRoute>
-          } />
-
         <Route path='/admin-login' element={
           <AuthAdmin>
             <AdminLogin/>
@@ -79,6 +74,7 @@ const App = () => {
       </Routes>
     </Router>
     </Provider>
+  </GoogleOAuthProvider>
   )
 }
 

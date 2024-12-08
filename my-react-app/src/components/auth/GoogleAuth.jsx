@@ -1,41 +1,39 @@
-import { useEffect } from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
-import axiosInstance from "../../utils/axiosInstance";
+import React from 'react';
+import { GoogleLogin } from '@react-oauth/google';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
+import axiosInstance from '../../utils/axiosInstance';
+import { useNavigate } from 'react-router-dom';
 
-const GoogleOAuthStart = () => {
-  useEffect(() => {
-    const initiateGoogleLogin = async () => {
-      try {
-        const response = await axiosInstance.get("/user/google-login");
-        const { url } = response.data;
-        console.log("Redirecting to Google login URL:", url);
-        window.location.href = url;
-      } catch (error) {
-        console.error("Error initiating Google login:", error);
-        window.location.href = "/login";
+const GoogleAuth = () => {
+    const navigate = useNavigate();
+  const handleLogin = async (response) => {
+    try {
+      if (response.credential) {
+        const res = await axiosInstance.post('/user/google-login', {
+          credential: response.credential,
+        });
+
+        console.log('google res = ', res.data)
+        const { userId, name } = res.data;
+
+        localStorage.setItem('userId', userId);
+        showSuccessToast('Google Login Successful!');
+        navigate('/home');
       }
-    };
-
-    initiateGoogleLogin();
-  }, []);
+    } catch (error) {
+      showErrorToast('Google login failed');
+      console.error(error);
+    }
+  };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        bgcolor: "background.default",
-      }}
-    >
-      <CircularProgress size={70} thickness={5} color="primary" />
-      <Typography variant="h6" sx={{ mt: 2, color: "text.secondary" }}>
-        Redirecting to Google login...
-      </Typography>
-    </Box>
+    <div>
+      <GoogleLogin
+        onSuccess={handleLogin}
+        onError={() => showErrorToast('Google login failed')}
+      />
+    </div>
   );
 };
 
-export default GoogleOAuthStart;
+export default GoogleAuth;

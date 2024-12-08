@@ -8,7 +8,7 @@ import Banner from "../../components/header/Banner";
 import { Divider } from "@mui/material";
 import axiosInstance from "../../utils/axiosInstance";
 
-const Home = () => {
+const LandingPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,7 +38,10 @@ const Home = () => {
   const fetchBanners = async () => {
     try {
       const response = await axiosInstance.get('/admin/getBanners')
+      console.log('successfull response got')
       setBanner(response?.data?.banner)
+      console.log('setban log',banner)
+      console.table(response.data?.banner)      
     } catch (error) {
       console.log('error while fetching',error)
     }
@@ -103,4 +106,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default LandingPage;

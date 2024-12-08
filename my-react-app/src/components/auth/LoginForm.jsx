@@ -8,7 +8,7 @@ import { useDispatch } from "react-redux";
 import { showErrorToast } from "../../utils/toastUtils";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import GoogleIcon from '@mui/icons-material/Google';
+import GoogleAuth from "./GoogleAuth";
 
 
 const LoginForm = ({ isAdmin = false }) => {
@@ -63,6 +63,8 @@ const LoginForm = ({ isAdmin = false }) => {
 
         if (!validateForm()) return; 
 
+        localStorage.setItem('email',email); 
+
         try {
             console.log('user data is sent...')
             const apiUrl = isAdmin ?'/admin/login' : '/user/login';
@@ -74,7 +76,7 @@ const LoginForm = ({ isAdmin = false }) => {
                 dispatch(setAdminId(adminId)); 
                 navigate('/admin-dashboard'); 
             } else {
-                const userId = localStorage.setItem('userId', response?.data?.user?.id);                
+                const userId = localStorage.setItem('userId', response?.data?.user?.id);
                 dispatch(setUserId(userId));
                 navigate('/home'); 
             }
@@ -86,10 +88,11 @@ const LoginForm = ({ isAdmin = false }) => {
         }
     }
 
-    const handleGoogleLogin = async() => {
-        console.log("Google login button clicked");
-        navigate("/google-auth");
-    };
+    const handleGoogleSuccess = ({ userId, name }) => {
+        localStorage.setItem("userId", userId);
+        dispatch(setUserId(userId));
+        navigate("/home");
+      };
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -110,9 +113,24 @@ const LoginForm = ({ isAdmin = false }) => {
     return (
         <Container maxWidth="xs">
             <Box sx={{ mt: 8, textAlign: 'center' }}>
-                <Typography variant="h4" gutterBottom>
+                
+                <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    background: 'linear-gradient(to right, #FF7E5F, #FEB47B)', 
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    letterSpacing: '1.5px',
+                    textTransform: 'uppercase',
+                    mb: 3,
+                }}
+                >
                     {!isAdmin ? 'Login' : 'Admin Login'}
                 </Typography>
+
                 <form onSubmit={handleSubmit}>
                     <TextField
                         fullWidth
@@ -148,12 +166,70 @@ const LoginForm = ({ isAdmin = false }) => {
                             ),
                         }}
                     />
-                    <Button type="submit" variant="contained" color="primary" fullWidth>
-                        Login
+
+                    {/* Forgot Password Link */}
+                    <Typography
+                        variant="body2"
+                        sx={{
+                        textAlign: "right",
+                        color: "primary.main",
+                        cursor: "pointer",
+                        marginTop: "8px",
+                        marginBottom: "16px",
+                        }}
+                        onClick={() => navigate("/forgot-password")}
+                    >
+                        Forgot Password?
+                    </Typography>
+
+                    {/* Login button */}
+                    <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                        position: "relative",
+                        padding: "12px 20px",
+                        background: "#111", 
+                        color: "#fff",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        borderRadius: "10px",
+                        textTransform: "uppercase",
+                        border: "2px solid transparent",
+                        cursor: "pointer",
+                        overflow: "hidden",
+                        boxShadow: "0 0 10px rgba(255, 255, 255, 0.2)",
+                        transition: "all 0.4s ease-in-out",
+                        "&:before": {
+                        content: '""',
+                        position: "absolute",
+                        top: "-5px",
+                        left: "-5px",
+                        right: "-5px",
+                        bottom: "-5px",
+                        background: "linear-gradient(45deg, #ff0080, #ff8c00, #ff0080)", // Neon colors
+                        zIndex: -1,
+                        borderRadius: "12px",
+                        boxShadow: "0 0 15px rgba(255, 0, 128, 0.7), 0 0 20px rgba(255, 140, 0, 0.7)", // Glowing neon effect
+                        opacity: 0,
+                        transition: "all 0.3s ease-in-out",
+                        },
+                        "&:hover": {
+                        background: "#333",
+                        color: "#00b3ff", 
+                        "&:before": {
+                            opacity: 1, 
+                            transform: "scale(1.1)", 
+                        },
+                        },
+                    }}
+                    >
+                    Login
                     </Button>
                 </form>
 
-                {!isAdmin && (
+            {!isAdmin && (
             <>
             <Box sx={{ mt: 2 }}>
                 <Typography variant="body2">
@@ -171,27 +247,7 @@ const LoginForm = ({ isAdmin = false }) => {
                 <Divider sx={{ my: 2 }}>
                     <Typography variant="body2">OR</Typography>
                 </Divider>
-
-                <Button
-                variant="outlined"
-                fullWidth
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderColor: '#4285F4',
-                    color: '#4285F4',
-                    '&:hover': {
-                        borderColor: '#4285F4',
-                        backgroundColor: '#4285F4',
-                        color: 'white',
-                    },
-                }}
-                onClick={handleGoogleLogin}
-                >
-                    <GoogleIcon sx={{ mr: 1 }} />
-                     Login with Google
-                    </Button>
+                    <GoogleAuth onLoginSuccess={handleGoogleSuccess} />
                 </Box>
                 </>
             )}

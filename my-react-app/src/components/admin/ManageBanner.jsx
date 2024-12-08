@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Button, Box, Modal, Typography, Select, MenuItem, CircularProgress
+  Button, Box, Modal, Typography, Select, MenuItem, CircularProgress, Pagination
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
+
 const ManageBanner = ({ banners, bannerData, setBannerData, onAddBanner, onUpdateBanner, isUploading }) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const locations = ['Home', 'Products', 'Brands', 'About Us', 'Contact Us'];
+  const locations = ['Home', 'Products', 'Brands', 'About Us', 'Contact Us', 'AuthPages'];
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const itemsPerPage = 4;
+  const startIndex = (currentPage - 1)* itemsPerPage;
+  const currentBanners = banners.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(banners.length / itemsPerPage);
 
   const saveBanner = async () => {
     if (bannerData.id) {
-      // If editing, call the update function
       await onUpdateBanner(bannerData.id, bannerData.image);
     } else {
-      // If adding, call the add function
       await onAddBanner(bannerData);
     }
     closeModal();
@@ -62,7 +67,7 @@ const ManageBanner = ({ banners, bannerData, setBannerData, onAddBanner, onUpdat
             </TableRow>
           </TableHead>
           <TableBody>
-            {banners.map((banner) => (
+            {currentBanners.map((banner) => (
               <TableRow key={banner._id} sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
                 <TableCell align="center">{banner.bannerLocation}</TableCell>
                 <TableCell align="center">
@@ -76,6 +81,18 @@ const ManageBanner = ({ banners, bannerData, setBannerData, onAddBanner, onUpdat
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination Component */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={(event, page) => setCurrentPage(page)}
+          color="primary"
+          siblingCount={1}
+          boundaryCount={1}
+        />
+      </Box>
 
       <Modal open={modalOpen} onClose={closeModal}>
         <Box sx={{

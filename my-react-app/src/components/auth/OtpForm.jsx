@@ -1,133 +1,176 @@
-import React, { useEffect, useState } from 'react'
-import { validateOtp } from '../../utils/validation'
-import { Button, Typography, Box, Container } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Typography, Box, Modal, IconButton, Button, CircularProgress } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import axiosInstance from '../../utils/axiosInstance';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
+import { toast } from 'react-toastify';
 
-const OtpForm = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [loading, setLoading] = useState(true);
-    const [otp, setOtp] = useState(['','','','','','']);
-    const [error, setError] = useState('');
-    const [countdown, setCountdown] = useState('');
-    const [canResend, setCanResend] = useState(false);
-
-    const email = location.state?.email;
-    console.log(email)
-
-    const startCoundown = (expiryTime)=>{
-      const timer = setInterval(()=>{
-        const now = new Date();
-        const timeleft = Math.floor((new Date(expiryTime) - now)/ 1000);
-
-        if(timeleft > 0){
-          const minutes = String(Math.floor(timeleft/60)).padStart(2,'0');
-          const seconds = String(timeleft % 60).padStart(2,'0');
-
-          setCountdown(`${minutes}:${seconds}`)
-        }else{
-          setCountdown('');
-          setCanResend(true);
-          clearInterval(timer);
-        }
-
-      },1000)
-
-      return timer;
-    }
-
-    useEffect(()=>{
-
-      if(!email){
-        navigate('/login',{ replace:true });
-        return;
-      }
-      setLoading(false);
-
-      axiosInstance.post('/user/otpVerify',{ email })
-
-      .then((response) =>{
-        const { otpExpireAt } = response.data
-        console.log(otpExpireAt)
-        showSuccessToast(response.data.message)
-        startCoundown(otpExpireAt);
-      })
-
-      .catch((error) =>{
-        console.error('Error fetching otp ',error)
-      }) 
-    },[email, navigate])
-
-    if(loading) return null;
+const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(10);
+  const [resendDisabled, setResendDisabled] = useState(true); 
   
-    //handle inputchange of otp entering
-    const handleChange = (e, index)=>{
-        let value = e.target.value
-        const error = validateOtp([value]);
-        if(error){
-          setError('Please enter numbers only');
-          return;
-        }else{
-          setError('');
-        }
-        if(value.length > 1) return;
 
-        setOtp((prevOtp)=>{
-            const newOtp = [...prevOtp];
-            newOtp[index] = value;
-            return newOtp;
-        });
-        //move focus when input box filled
-        if (value && index < otp.length - 1) {
-          document.getElementById(`otp-input-${index + 1}`).focus();
-        }
-}
+  const startTimer = () => {
+    setTimer(60);
+    setResendDisabled(true);
 
-    const handleResendOTP = ()=>{
-        axiosInstance.post('/user/resendOtp', { email })
-        .then((response)=>{
-          console.log(response.data)
-          showSuccessToast(response.data.message)
-          setOtp(['', '', '', '', '', '']);
-          const newExpiryTime = new Date();
-          newExpiryTime.setMinutes(newExpiryTime.getMinutes() + 2);
-          startCoundown(newExpiryTime);
-          setCanResend(false);
-        })
-        .catch((error)=>{
-          console.log(error.message)
-          showErrorToast(error.response.data.message)
-        })
+    let interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval); 
+          setResendDisabled(false); 
+          return 0;
+        }
+        return prev - 1; 
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    startTimer(); 
+    requestOtp(); 
+  }, [open]);
+
+  const requestOtp = async (isResend) => {
+    try {
+      const response = await axiosInstance.post('/user/createOtp', { email, isSignup: isSignup });
+      console.log('OTP sent:', response?.data);
+      toast.success(response?.data?.message);
+    } catch (error) {
+      console.error('Error while requesting OTP:', error);
+      // toast.error('Failed to send OTP. Please try again.');
+    }
+  };
+
+  const handleChange = (e, index) => {
+    const value = e.target.value;
+    if (!/^\d*$/.test(value)) {
+      setError('Please enter numbers only');
+      return;
+    }
+    setError('');
+    setOtp((prevOtp) => {
+      const newOtp = [...prevOtp];
+      newOtp[index] = value;
+      return newOtp;
+    });
+
+    if (value && index < otp.length - 1) {
+      document.getElementById(`otp-input-${index + 1}`).focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        document.getElementById(`otp-input-${index - 1}`).focus();
+      }
+      setOtp((prevOtp) => {
+        const newOtp = [...prevOtp];
+        newOtp[index] = '';
+        return newOtp;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    const otpString = otp.join('');
+    if (otpString.length < 6) {
+      setError('Please enter the complete OTP');
+      return;
     }
 
-  const handleSubmit = async()=>{
+    setLoading(true);
+    setError('');
+
     try {
-      const otpString = otp.join('');
-      if(otpString.length == 6){
-
-        const response = await axiosInstance.post('/user/otpCheck',{ otpString })
-        console.log(response.data.message)
-        showSuccessToast(response.data.message)
-        //routing to home page
-        setTimeout(()=>{
-          navigate('/login')
-        },1000)
-
-      }else{
-          setError('Please enter a valid 6-digit OTP')
+      const response = await axiosInstance.post('/user/otpVerify', { email, otp: otpString });
+      if (response.data.success) {
+        console.log('OTP verified successfully');
+        toast.success('OTP verified successfully');
+        setOtpVerified(true);
+        setOtp(['', '', '', '', '', '']);
+        onClose();
+      } else {
+        setError('Invalid OTP. Please try again.');
       }
     } catch (error) {
-      console.log(error.response.data.message)
-      showErrorToast(error.response.data.message)
+      console.error('Error verifying OTP:', error);
+      setError(error.response?.data?.message || 'Failed to verify OTP. Please try again.');
+    } finally {
+      setLoading(false);
     }
-}
+  };
+
+  const handleCancel = () => {
+    setOtp(['', '', '', '', '', '']);
+    setError('');
+    onClose();
+  };
+  
+  const handleResendOtp = () => {
+    console.log('button clicked')
+    setOtp(['', '', '', '', '', '']);
+    requestOtp();
+    startTimer();
+  };
 
   return (
-    <Container maxWidth="xs">
-      <Box sx={{ mt: 8, textAlign: 'center' }}>
-          <Typography variant="h4" gutterBottom>
+    <Modal
+      open={open}
+      onClose={(e, reason) => {
+        if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
+          onClose();
+        }
+      }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: '#fff',
+          padding: 4,
+          borderRadius: 2,
+          boxShadow: 24,
+          width: '90%',
+          maxWidth: '500px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+        }}
+      >
+        <IconButton
+          onClick={handleCancel}
+          sx={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            color: '#000',
+            '&:hover': {
+              backgroundColor: 'red',
+              color: 'white',
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+
+        <Box sx={{ marginBottom: 4 }}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            textAlign="center"
+            sx={{
+              padding: '16px 0',
+              color: '#000',
+              fontWeight: 'bold',
+            }}
+          >
             OTP Verification
           </Typography>
           {error && (
@@ -135,77 +178,71 @@ const OtpForm = () => {
               {error}
             </Typography>
           )}
-      </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2 }}>
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              id={`otp-input-${index}`}
-              type="text"
-              value={digit}
-              onChange={(e) => handleChange(e, index)}
-              maxLength="1"
-              style={{
-                width: '50px',
-                height: '50px',
-                fontSize: '24px',
-                textAlign: 'center',
-                borderRadius: '8px',
-                border: '2px solid #ddd',
-                outline: 'none',
-                backgroundColor: '#f9fafb',
-                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-                transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-                color: '#333',
-                fontWeight: 'bold',
-              }}
-              onFocus={(e) => {
-                e.target.select();
-                e.target.style.borderColor = '#4a90e2'; // Active border color
-                e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'; // Focus shadow
-              }}
-              onBlur={(e) => {
+          <Typography sx={{ mt: 2 }}>Time Remaining: {Math.floor(timer / 60)}:{`0${timer % 60}`.slice(-2)}</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 3 }}>
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                id={`otp-input-${index}`}
+                type="text"
+                value={digit}
+                onChange={(e) => handleChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                maxLength="1"
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  fontSize: '28px',
+                  textAlign: 'center',
+                  borderRadius: '10px',
+                  border: '2px solid #ddd',
+                  outline: 'none',
+                  backgroundColor: '#f9fafb',
+                  boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                  color: '#333',
+                  fontWeight: 'bold',
+                  transition: 'border-color 0.3s, box-shadow 0.3s',
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
 
-                e.target.style.borderColor = '#ddd'; // Reset border color
-                e.target.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)'; // Reset shadow
-              }}
-            />
-          ))}
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="body2" color="textSecondary">
-            {canResend ? (
-              "Didn't receive the code?"
-            ) : (
-              <>
-                Resend OTP in{' '}
-                <span style={{ color: 'red', fontWeight: 'normal' }}>
-                  {countdown} remaining
-                </span>
-              </>
-            )}
-          </Typography>
-          <Button
-            variant="text"
-            color="primary"
-            onClick={handleResendOTP}
-            disabled={!canResend}
-          >
-            Resend OTP
-          </Button>
-        </Box>
         <Button
           variant="contained"
-          color="primary"
           fullWidth
-          sx={{ mt: 2, mb: 1 }}
           onClick={handleSubmit}
-          >
-          Verify OTP
+          disabled={loading}
+          sx={{
+            mt: 3,
+            position: 'relative',
+            padding: '12px 20px',
+            background: '#111',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            borderRadius: '10px',
+            textTransform: 'uppercase',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify OTP'}
         </Button>
-    </Container>
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={handleResendOtp}
+          disabled={resendDisabled}
+          sx={{
+            mt: 2,
+            borderRadius: '10px',
+          }}
+        >
+          Resend OTP
+        </Button>
+      </Box>
+    </Modal>
   );
 };
 
-
-export default OtpForm;
+export default OtpFormModal;

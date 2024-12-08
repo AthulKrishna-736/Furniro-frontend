@@ -21,8 +21,8 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
-  const [mainImage, setMainImage] = useState(''); // State for main image
-  const [zoomStyle, setZoomStyle] = useState({}); // State for zoom effect
+  const [mainImage, setMainImage] = useState(''); 
+  const [zoomStyle, setZoomStyle] = useState({}); 
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -32,7 +32,7 @@ const ProductDetail = () => {
         console.log(response.data);
         setProduct(product);
         setRecommendedProducts(recommendedProducts);
-        setMainImage(product.images[0]); // Set initial main image
+        setMainImage(product.images[0]); 
       } catch (error) {
         console.error('Error fetching product details:', error);
       } finally {
@@ -144,31 +144,51 @@ const ProductDetail = () => {
 
         {/* Product Details */}
         <Box sx={{ flex: 1 }}>
+          
           <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
             {product.name}
           </Typography>
+
           <Typography variant="h6" sx={{ color: 'green', marginBottom: '10px' }}>
             ₹{product.salesPrice}
           </Typography>
+
           <Typography
             variant="body2"
             sx={{ textDecoration: 'line-through', color: 'gray', marginBottom: '10px' }}
           >
             ₹{product.originalPrice || 100000}
           </Typography>
+
           <Typography
             variant="body1"
             sx={{ color: product.stockQuantity > 0 ? 'blue' : 'red', marginBottom: '10px' }}
           >
             {product.stockQuantity > 0 ? `In Stock (${product.stockQuantity})` : 'Out of Stock'}
           </Typography>
+
           <Typography sx={{ marginBottom: '20px' }}>{product.description}</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '20px' }}>
-            {Array.from({ length: Math.round(product.reviews || 0) }).map((_, i) => (
-              <StarIcon key={i} sx={{ color: 'gold' }} />
+          
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "20px",
+            }}
+          >
+            {/* Render stars dynamically */}
+            {Array.from({ length: Math.round(product.reviews || 5) }).map((_, index) => (
+              <StarIcon key={index} sx={{ color: "gold", fontSize: 20 }} />
             ))}
-            <Typography>({product.reviews || 0} stars)</Typography>
+
+            {/* Display review count */}
+            <Typography variant="body1" sx={{ display: "flex", alignItems: "center" }}>
+              {product.reviews || 5}
+            </Typography>
           </Box>
+
+          {/* Buttons */}
           <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
             variant="outlined"

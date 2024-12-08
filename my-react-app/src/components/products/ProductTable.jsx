@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Pagination } from '@mui/material';
 import axiosInstance from '../../utils/axiosInstance';
 import ConfirmationAlert from '../admin/Alertmsg'
 import ProductForm from './ProductForm'; 
@@ -11,6 +11,16 @@ const ProductTable = ({ categories }) => {
     const [productToEdit, setProductToEdit] = useState(null);
     const [alertOpen, setAlertOpen] = useState(false);
     const [productToBlock, setProductToBlock] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    const itemsPerPage = 4;
+    const totalPages = Math.ceil(products.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentProduct = products.slice(startIndex, startIndex + itemsPerPage)
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
 
     //fetch products
     const fetchProducts = async () => {
@@ -99,65 +109,75 @@ const ProductTable = ({ categories }) => {
                     </TableRow>
                     </TableHead>
                     <TableBody>
-                    {products.length > 0 ? (
-                        products.map((product) => (
-                        <TableRow key={product._id} sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
-                            <TableCell sx={{ textAlign: 'center', fontSize: '15px' }}>{product.name}</TableCell>
-                            <TableCell sx={{ textAlign: 'center', color: '#1976d2', fontWeight: 'bold' }}>
-                            ₹{product.salesPrice}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: 'center', color: product.stockQuantity < 10 ? 'red' : 'green' }}>
-                            {product.stockQuantity}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: 'center' }}>
-                            {product.images && product.images[0] ? (
-                                <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '5px' }}
-                                />
-                            ) : (
-                                'No Image'
-                            )}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: 'center', fontSize: '15px' }}>{product.category?.name}</TableCell>
-                            <TableCell
-                            sx={{
-                                textAlign: 'center',
-                                color: product.isBlocked ? 'red' : 'green',
-                            }}
-                            >
-                            {product.isBlocked ? 'Blocked' : 'Active'}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: 'center' }}>
-                            <Button 
-                            variant="outlined" 
-                            color="primary" 
-                            sx={{ marginRight: 1 }}
-                            onClick={()=> handleEdit(product)}
-                            >
-                                Edit
-                            </Button>
-                            <Button
-                            variant="outlined"
-                            color={product.isBlocked ? 'success' : 'error'}
-                            onClick={() => confirmBlock(product._id)}
-                            >
-                            {product.isBlocked ? 'Unblock' : 'Block'}
-                            </Button>
-                            </TableCell>
-                        </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                        <TableCell colSpan={6} align="center" sx={{ color: '#999' }}>
-                            No products available.
-                        </TableCell>
-                        </TableRow>
-                    )}
+                        {currentProduct.length > 0 ? (
+                            currentProduct.map((product) => (
+                                <TableRow key={product._id} sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}>
+                                    <TableCell sx={{ textAlign: 'center', fontSize: '15px' }}>{product.name}</TableCell>
+                                    <TableCell sx={{ textAlign: 'center', color: '#1976d2', fontWeight: 'bold' }}>
+                                        ₹{product.salesPrice}
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: 'center', color: product.stockQuantity < 10 ? 'red' : 'green' }}>
+                                        {product.stockQuantity}
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: 'center' }}>
+                                        {product.images && product.images[0] ? (
+                                            <img
+                                                src={product.images[0]}
+                                                alt={product.name}
+                                                style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '5px' }}
+                                            />
+                                        ) : (
+                                            'No Image'
+                                        )}
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: 'center', fontSize: '15px' }}>{product.category?.name}</TableCell>
+                                    <TableCell
+                                        sx={{
+                                            textAlign: 'center',
+                                            color: product.isBlocked ? 'red' : 'green',
+                                        }}
+                                    >
+                                        {product.isBlocked ? 'Blocked' : 'Active'}
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: 'center' }}>
+                                        <Button 
+                                            variant="outlined" 
+                                            color="primary" 
+                                            sx={{ marginRight: 1 }}
+                                            onClick={() => handleEdit(product)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            color={product.isBlocked ? 'success' : 'error'}
+                                            onClick={() => confirmBlock(product._id)}
+                                        >
+                                            {product.isBlocked ? 'Unblock' : 'Block'}
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={7} align="center" sx={{ color: '#999' }}>
+                                    No products available.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {/* Pagination */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+                <Pagination
+                    count={totalPages}
+                    page={currentPage}
+                    onChange={handlePageChange}
+                    color="primary"
+                />
+            </Box>
 
             {/* Modal for Adding Product */}
             {openModal && (

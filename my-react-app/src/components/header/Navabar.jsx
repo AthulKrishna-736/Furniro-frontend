@@ -11,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [scrolled, setScrolled] = useState(false);
+  const [logStatus, setLogStatus] = useState(false);
 
   const getButtonStyle = (path) => ({
     color: location.pathname === path ? '#5c6bc0' : 'black', // Change color for active link
@@ -21,22 +22,31 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      // Send logout request to the server
       const response = await axiosInstance.post('/user/logout', {}, { withCredentials: true });
       console.log('response of logout = ', response.data.message);
-
-      // Dispatch Redux action to clear user ID from the store
       dispatch(logoutUser());
-      // Navigate to login page
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error.response?.data?.message);
     }
   };
 
+  const checkLogStatus = ()=>{
+    if(!localStorage.getItem('userId')){
+      console.log('user id has val')
+      setLogStatus(false);
+    }else{
+      console.log('user id not have value')
+      setLogStatus(true);
+    }
+  }
+
   useEffect(() => {
+    //check log status
+    checkLogStatus();
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10); // Add shadow when scrolling down
+      setScrolled(window.scrollY > 10); 
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -102,13 +112,36 @@ const Navbar = () => {
           <IconButton color="inherit" sx={{ color: 'black' }}>
             <PersonOutline />
           </IconButton>
-          <Button
-            onClick={handleLogout}
-            startIcon={<Logout />}
-            sx={{ color: 'black', fontWeight: 'bold', textTransform: 'none' }}
-          >
-            Logout
-          </Button>
+          {logStatus ? (
+            <Button
+              onClick={handleLogout}
+              startIcon={<Logout />}
+              sx={{
+                color: 'black',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                border: '1px solid #5c6bc0',
+                padding: '4px 16px',
+                borderRadius: '4px',
+              }}
+            >
+              Logout
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate('/login')}
+              sx={{
+                color: 'black',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                border: '1px solid #5c6bc0',
+                padding: '4px 16px',
+                borderRadius: '4px',
+              }}
+            >
+              Login
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

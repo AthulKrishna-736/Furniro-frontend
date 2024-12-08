@@ -42,8 +42,8 @@ const UserListPage = () => {
         toast.error(error.response?.data?.message);
     }
   }
-  
 
+  
   return (
     <Box sx={{ display: 'flex' }}>
       <ToastContainer autoClose={1000}/>

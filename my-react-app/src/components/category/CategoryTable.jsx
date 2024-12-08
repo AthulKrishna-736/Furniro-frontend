@@ -10,12 +10,23 @@ import {
   Paper,
   Button,
   Box,
+  Pagination,
 } from '@mui/material';
 
 
 const CategoryTable = ({ categories, handleEdit, blockCategory }) => {
   const [alertOpen, setAlertOpen] = useState(false); 
   const [categoryIdToBlock, setCategoryIdToBlock] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentCategories = categories.slice(startIndex, startIndex + itemsPerPage)
+
+  const handlePageChange = (event , value)=>{
+    setCurrentPage(value)
+  }
+
 
   const handleToggleStatus = (id) => {
     setCategoryIdToBlock(id);
@@ -48,8 +59,8 @@ const CategoryTable = ({ categories, handleEdit, blockCategory }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.length > 0 ? (
-              categories.map((category) => (
+            {currentCategories.length > 0 ? (
+              currentCategories.map((category) => (
                 <TableRow
                   key={category._id}
                   sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}
@@ -91,8 +102,20 @@ const CategoryTable = ({ categories, handleEdit, blockCategory }) => {
               </TableRow>
             )}
           </TableBody>
+
         </Table>
       </TableContainer>
+
+      {categories.length > itemsPerPage && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3 }}>
+          <Pagination
+          count={Math.ceil(categories.length/itemsPerPage)}
+          page={currentPage}
+          onChange={handlePageChange}
+          color='primary'
+          />
+        </Box>
+      )}
 
         {/* Confirmation Alert */}
         <ConfirmationAlert
