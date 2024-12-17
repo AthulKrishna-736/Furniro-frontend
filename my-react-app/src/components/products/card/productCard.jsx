@@ -2,12 +2,25 @@ import React from 'react';
 import { Card, CardMedia, CardContent, Typography, IconButton, Box, Tooltip } from '@mui/material';
 import { AddShoppingCart, FavoriteBorder } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
+
 
 const ProductCard = ({ product = {}, variant = "default" }) => {  // Default product as an empty object
   const navigate = useNavigate();
 
-  const handleAddToCart = () => {
-    console.log('Added to cart:', product);
+  const handleAddToCart = async (event) => {
+    event.stopPropagation(); 
+    const userId = localStorage.getItem('userId');
+    try {
+      const response = await axiosInstance.post('/user/cart', { userId, productId: product._id, quantity: 1 });
+
+      console.log('res cart: ', response?.data)
+      showSuccessToast('Product added to cart!');
+    } catch (error) {
+      showErrorToast(error.response.data.message);
+      console.error('Error adding to cart:', error);
+    }
   };
 
   const handleAddToWishlist = () => {
@@ -15,7 +28,6 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
   };
 
   const handleCardClick = () => {
-    // Navigate to the product detail page using the product ID
     if (product._id) {
       navigate(`/product-detail/${product._id}`);
     }
@@ -32,12 +44,12 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         '&:hover': variant === "trending" ? {
           transform: 'scale(1.05)',
-          boxShadow: '0 0 8px rgba(0, 123, 255, 0.5)', // Blue shadow effect
+          boxShadow: '0 0 8px rgba(0, 123, 255, 0.5)', 
         } : {
           boxShadow: 6,
         },
       }}
-      onClick={handleCardClick} // Click handler for the card
+      onClick={handleCardClick}
     >
       {/* Product Image */}
       <Box
@@ -47,9 +59,9 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
       >
         <CardMedia
           component="img"
-          alt={product.name || 'Product'}  // Fallback if product.name is undefined
+          alt={product.name || 'Product'} 
           height="200"
-          image={product.images?.[0] || '/path/to/default-image.jpg'}  // Fallback image
+          image={product.images?.[0] || '/path/to/default-image.jpg'}  
           sx={{
             objectFit: 'contain',
             padding: 2,
@@ -75,7 +87,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
             marginBottom: 1,
           }}
         >
-          {product.name || 'No Name Available'}  {/* Fallback if product.name is undefined */}
+          {product.name || 'No Name Available'} 
         </Typography>
 
         {/* Product Description */}

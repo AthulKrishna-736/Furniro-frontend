@@ -32,12 +32,12 @@ const Navbar = () => {
   };
 
   const checkLogStatus = ()=>{
-    if(!localStorage.getItem('userId')){
+    if(localStorage.getItem('userId')){
       console.log('user id has val')
-      setLogStatus(false);
+      setLogStatus(true);
     }else{
       console.log('user id not have value')
-      setLogStatus(true);
+      setLogStatus(false);
     }
   }
 
@@ -96,20 +96,18 @@ const Navbar = () => {
         >
           <Button onClick={() => navigate('/home')} sx={getButtonStyle('/home')}>Home</Button>
           <Button onClick={() => navigate('/products')} sx={getButtonStyle('/products')}>Products</Button>
-          <Button onClick={() => navigate('/brands')} sx={getButtonStyle('/brands')}>Brands</Button>
           <Button onClick={() => navigate('/about-us')} sx={getButtonStyle('/about-us')}>About Us</Button>
-          <Button onClick={() => navigate('/contact-us')} sx={getButtonStyle('/contact-us')}>Contact Us</Button>
         </Box>
 
         {/* Icons and Logout Button on the right */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton color="inherit" sx={{ color: 'black' }}>
+          <IconButton color="inherit" sx={{ color: 'black' }} onClick={()=> navigate('/wishlist')}>
             <FavoriteBorder />
-          </IconButton>
-          <IconButton color="inherit" sx={{ color: 'black' }}>
+          </IconButton >
+          <IconButton color="inherit" sx={{ color: 'black' }} onClick={()=> navigate('/cart')}>
             <ShoppingBagOutlined />
           </IconButton>
-          <IconButton color="inherit" sx={{ color: 'black' }}>
+          <IconButton color="inherit" sx={{ color: 'black' }} onClick={()=> navigate('/account')}>
             <PersonOutline />
           </IconButton>
           {logStatus ? (

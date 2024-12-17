@@ -12,9 +12,8 @@ const Banner = ({ image, text, hideText = false }) => {
             variant="h4"
             sx={{
               fontWeight: 'bold',
-              marginBottom: '20px', // Space between text and banner image
-              marginTop: '30px', // Top margin for more space
-              color: '#333',
+              marginBottom: '20px', 
+              marginTop: '30px', 
               paddingBottom: '10px',
             }}
           >
@@ -27,7 +26,7 @@ const Banner = ({ image, text, hideText = false }) => {
       {/* Banner Image */}
       <Box
         sx={{
-          height: '300px',
+          height: '450px',
           backgroundImage: `url(${image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',

@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, IconButton, Pagination } from '@mui/material';
-import { Search, Clear, FilterAlt } from '@mui/icons-material';
+import { FormControl, InputLabel, Select, MenuItem, Box, Typography, TextField, Button, IconButton, Pagination } from '@mui/material';
+import { Search, Clear } from '@mui/icons-material';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import ProductCard from '../card/productCard';
 import axiosInstance from '../../../utils/axiosInstance';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const ProductsUser = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState([]);
+  const [sortValue, setSortValue] = useState('');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -29,19 +34,53 @@ const ProductsUser = () => {
         setProducts(featuredProducts);
       } catch (err) {
         console.error('Error fetching products:', err);
-        setError('Failed to fetch products.');
       }
     };
   
     fetchProducts();
   }, []);
+
   
+  const handleSortChange = (event) => {
+    const value = event.target.value;
+    setSortValue(value);
+
+    let sortedProducts = [...products];
+
+    switch (value) {
+      case 'low-high':
+        sortedProducts.sort((a, b) => a.salesPrice - b.salesPrice); 
+        break;
+      case 'high-low':
+        sortedProducts.sort((a,b)=> b.salesPrice - a.salesPrice);
+        break;
+      case 'new-arrivals':
+        sortedProducts.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'a-z':
+        sortedProducts.sort((a, b) => a.name.localeCompare(b.name)); // A-Z
+        break;
+      case 'z-a':
+        sortedProducts.sort((a, b) => b.name.localeCompare(a.name)); // Z-A
+        break;
+      default:
+        break;
+    }
+
+    setProducts(sortedProducts);
+  
+  };
+
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
 
   const handlePageChange = (event, value) => setPage(value);
 
-  const handleClearFilters = () => setSearchQuery('');
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSortValue('');
+    setProducts([...products]);
+  }
 
   return (
     <Box sx={{ padding: '2rem', marginTop: '30px', textAlign: 'center' }}>
@@ -88,41 +127,60 @@ const ProductsUser = () => {
         />
 
         {/* Styled Filter Button */}
-        <Button
-          variant="contained"
-          sx={{
-            background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-            color: '#fff',
-            textTransform: 'capitalize',
-            padding: '0.5rem 1.5rem',
-            fontWeight: 'bold',
-            borderRadius: '30px',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #1565c0, #1e88e5)',
-            },
-          }}
-          startIcon={<FilterAlt />}
-        >
-          Filter
-        </Button>
+        <FormControl
+      variant="standard"
+      sx={{
+        minWidth: 150,
+        '& .MuiSelect-root': {
+          padding: '0.4rem 1rem',
+          fontSize: '0.9rem',
+          color: '#000',
+        },
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '& .MuiSvgIcon-root': {
+          color: '#000', // Arrow color
+        },
+      }}
+    >
+      <Select
+        value={sortValue}
+        onChange={handleSortChange}
+        displayEmpty
+        sx={{
+          border: '1px solid #ddd',
+          borderRadius: '10px',
+          backgroundColor: '#fff',
+        }}
+      >
+        <MenuItem value="" disabled>
+          Filter 
+        </MenuItem>
+        <MenuItem value="low-high">Price: Low to High</MenuItem>
+        <MenuItem value="high-low">Price: High to Low</MenuItem>
+        <MenuItem value="new-arrivals">New Arrivals</MenuItem>
+        <MenuItem value="a-z">aA-zZ</MenuItem>
+        <MenuItem value="z-a">zZ-aA</MenuItem>
+      </Select>
+    </FormControl>
 
         {/* Styled Clear Button */}
         <Button
-          variant="outlined"
+          variant="text"
           onClick={handleClearFilters}
           sx={{
             textTransform: 'capitalize',
-            padding: '0.5rem 1.5rem',
+            padding: '0.5rem 0.5rem',
             fontWeight: 'bold',
-            color: '#d32f2f',
+            color: 'gray',
             borderColor: '#d32f2f',
-            borderRadius: '30px',
+            borderRadius: '0px',
             '&:hover': {
               backgroundColor: '#ffebee',
               borderColor: '#b71c1c',
             },
           }}
-          startIcon={<Clear />}
         >
           Clear All
         </Button>
@@ -136,6 +194,8 @@ const ProductsUser = () => {
           gap: '20px',
         }}
       >
+        <>
+        {/* <ToastContainer position="top-right" autoClose={2000} hideProgressBar /> */}
         {products
           .filter((product) =>
             product.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -143,6 +203,7 @@ const ProductsUser = () => {
           .map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
+          </>
       </Box>
 
       {/* Pagination */}

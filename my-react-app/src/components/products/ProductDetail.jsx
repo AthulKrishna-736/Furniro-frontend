@@ -15,6 +15,7 @@ import StarIcon from '@mui/icons-material/Star';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ProductCard from './card/productCard';
 import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -59,6 +60,23 @@ const ProductDetail = () => {
       backgroundSize: 'contain',
     });
   };
+
+  const handleAddToCart = async()=>{
+    try {
+      console.log('clicked this btn add to cart')
+      const userId = localStorage.getItem('userId');
+      const response = await axiosInstance.post('/user/cart', { userId, productId, quantity: 1 });
+      console.log('res add to cart: ', response.data)
+      showSuccessToast(response.data?.message);
+    } catch (error) {
+      console.log('prdct detail cart err',error.response);
+      showErrorToast(error.response?.data?.message);
+    }
+  }
+
+  const handleAddToWishlist = ()=>{
+    console.log('wishlist clicked')
+  }
 
   if (loading) {
     return (
@@ -111,7 +129,7 @@ const ProductDetail = () => {
                 component="img"
                 src={image}
                 alt={`Product ${index + 1}`}
-                onClick={() => setMainImage(image)} // Set clicked image as main
+                onClick={() => setMainImage(image)}
                 sx={{
                   width: '80px',
                   height: '80px',
@@ -193,6 +211,7 @@ const ProductDetail = () => {
           <Button
             variant="outlined"
             color="primary"
+            onClick={handleAddToCart}
             startIcon={<ShoppingCartIcon />}
             sx={{
               borderRadius: '30px',
@@ -214,6 +233,7 @@ const ProductDetail = () => {
           <Button
             variant="outlined"
             color="secondary"
+            onClick={handleAddToWishlist}
             startIcon={<FavoriteIcon />}
             sx={{
               borderRadius: '30px',

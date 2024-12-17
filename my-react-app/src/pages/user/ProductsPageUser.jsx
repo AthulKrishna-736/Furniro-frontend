@@ -3,12 +3,14 @@ import ProductsUser from '../../components/products/user/ProductsUser'; // Adjus
 import Navbar from '../../components/header/Navabar';
 import Footer from '../../components/footer/Footer';
 import { Divider } from '@mui/material';
+import { ToastContainer } from 'react-toastify';
 
 const ProductsPageUser = () => {
   return (
     <div>
       {/* Navbar Component */}
       <Navbar />
+      <ToastContainer/>
 
       <Divider sx={{marginTop:'70px'}}/>
 

@@ -19,7 +19,15 @@ import ProductsPageUser from './pages/user/ProductsPageUser'
 import AdminBanner from './pages/admin/AdminBanner'
 import LandingPage from './pages/user/LandingPage'
 import ForgotPassPage from './pages/user/ForogotPassPage'
-import WebSocketHandler from './utils/webSockets/WebSocketHandler'
+import UserProfile from './pages/user/userProfile/userProfile'
+import UserAddressPage from './pages/user/userProfile/UserAddressPage'
+import UserCartPage from './pages/user/userProfile/UserCartPage'
+import OrdersPage from './pages/admin/OrdersPage'
+import UserAccountPage from './pages/user/userProfile/UserAccountPage'
+import UserCheckoutPage from './pages/user/userProfile/UserCheckoutPage'
+import UserOrdersPage from './pages/user/userProfile/UserOrdersPage'
+
+
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
@@ -27,7 +35,6 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
     <Provider store={store}>
-      <WebSocketHandler />
     <Router>
       <Routes>
 
@@ -44,7 +51,43 @@ const App = () => {
           <Home/>
         </ProtectedRoute>
         } />
-          
+
+      <Route path='/account' element={
+        <ProtectedRoute>
+          <UserProfile/>
+        </ProtectedRoute>
+        } />
+
+      <Route path='/profile' element={
+        <ProtectedRoute>
+          <UserAccountPage />
+        </ProtectedRoute>
+        } />
+
+      <Route path='/address' element={
+        <ProtectedRoute>
+          <UserAddressPage />
+        </ProtectedRoute>
+        } />
+
+      <Route path='/cart' element={
+        <ProtectedRoute>
+          <UserCartPage />
+        </ProtectedRoute>
+        } />
+
+      <Route path='/checkout' element={
+        <ProtectedRoute>
+          <UserCheckoutPage />
+        </ProtectedRoute>
+        } />
+
+      <Route path='/orders' element={
+        <ProtectedRoute>
+          <UserOrdersPage />
+        </ProtectedRoute>
+        } />
+
         <Route path='/admin-login' element={
           <AuthAdmin>
             <AdminLogin/>
@@ -70,7 +113,11 @@ const App = () => {
         <Route path='/admin-banners' element={
           <AdminBanner/>
         } />
-        
+
+<       Route path='/admin-orders' element={
+          <OrdersPage/>
+        } />
+
       </Routes>
     </Router>
     </Provider>

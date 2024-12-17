@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button, TextField, Typography, Container, Box, InputAdornment, IconButton, Divider } from '@mui/material'
-import { setAdminId, setUserId } from "../../redux/features/userAuth";
+import { setAdminId, setUserEmail, setUserId } from "../../redux/features/userAuth";
 import { validateEmail, validatePass } from "../../utils/validation";
 import axiosInstance from "../../utils/axiosInstance";
 import { useDispatch } from "react-redux";
@@ -9,6 +9,7 @@ import { showErrorToast } from "../../utils/toastUtils";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import GoogleAuth from "./GoogleAuth";
+import { toast } from "react-toastify";
 
 
 const LoginForm = ({ isAdmin = false }) => {
@@ -77,14 +78,17 @@ const LoginForm = ({ isAdmin = false }) => {
                 navigate('/admin-dashboard'); 
             } else {
                 const userId = localStorage.setItem('userId', response?.data?.user?.id);
+                const userEmail = localStorage.setItem('userEmail', response?.data?.user?.email);
+                console.log('local storage in loginform: ',localStorage);
+                dispatch(setUserEmail(userEmail));
                 dispatch(setUserId(userId));
                 navigate('/home'); 
             }
             console.log(response?.data)
 
         } catch (error) {
-            showErrorToast(error.response.data.message)
             console.log(error.response?.data)
+            toast.error(error.response?.data?.message)
         }
     }
 
