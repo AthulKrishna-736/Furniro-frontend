@@ -1,6 +1,6 @@
 import React from 'react';
-import AdminNav from '../../components/admin/AdminNav';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminNav from '../../components/header/AdminNav';
+import AdminSidebar from '../../components/sidebar/AdminSidebar';
 
 
 const AdminDash = () => {

@@ -26,8 +26,10 @@ import OrdersPage from './pages/admin/OrdersPage'
 import UserAccountPage from './pages/user/userProfile/UserAccountPage'
 import UserCheckoutPage from './pages/user/userProfile/UserCheckoutPage'
 import UserOrdersPage from './pages/user/userProfile/UserOrdersPage'
-
-
+import UserWishlistPage from './pages/user/userProfile/UserWishlistPage'
+import UserWalletPage from './pages/user/userProfile/UserWalletPage'
+import AdminCoupon from './pages/admin/AdminCoupon'
+import CatOfferPage from './pages/admin/CatOfferPage'
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
@@ -88,6 +90,18 @@ const App = () => {
         </ProtectedRoute>
         } />
 
+      <Route path='/wishlist' element={
+        <ProtectedRoute>
+          <UserWishlistPage />
+        </ProtectedRoute>
+        } />
+
+      <Route path='/wallet' element={
+        <ProtectedRoute>
+          <UserWalletPage />
+        </ProtectedRoute>
+        } />
+
         <Route path='/admin-login' element={
           <AuthAdmin>
             <AdminLogin/>
@@ -114,9 +128,17 @@ const App = () => {
           <AdminBanner/>
         } />
 
-<       Route path='/admin-orders' element={
+        <Route path='/admin-orders' element={
           <OrdersPage/>
         } />
+
+        <Route path='/admin-coupons' element={
+          <AdminCoupon />
+        } />
+
+        <Route path='/admin-offers' element={
+          <CatOfferPage />
+        } />        
 
       </Routes>
     </Router>

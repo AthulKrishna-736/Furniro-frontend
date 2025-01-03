@@ -31,6 +31,7 @@ const userAuthSlice = createSlice({
             state.userDetails = null;
             localStorage.removeItem('adminId');
             localStorage.removeItem('userId');
+            localStorage.removeItem('email');
         }
     }
 })

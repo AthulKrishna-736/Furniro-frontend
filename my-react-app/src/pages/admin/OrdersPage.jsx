@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import AdminNavbar from '../../components/admin/AdminNav';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import OrderTable from '../../components/admin/OrderTable';
+import AdminNavbar from '../../components/header/AdminNav';
+import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import OrderTable from '../../components/orders/OrderTable';
 import { Box, Typography } from '@mui/material';
 import axiosInstance from '../../utils/axiosInstance';
 import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';

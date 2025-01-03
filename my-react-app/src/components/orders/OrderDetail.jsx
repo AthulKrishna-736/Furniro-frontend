@@ -9,10 +9,12 @@ import {
   Replay as ReplayIcon,
   HourglassEmpty, 
 } from '@mui/icons-material';
-import axiosInstance from '../../../utils/axiosInstance';
-import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
+import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
+import { useNavigate } from 'react-router-dom';
 
 const OrderDetail = () => {
+  const navigate = useNavigate()
   const [orders, setOrders] = useState([]);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const userId = localStorage.getItem('userId');
@@ -20,11 +22,9 @@ const OrderDetail = () => {
   const fetchOrderDetails = async () => {
     try {
       const response = await axiosInstance.get(`/user/getOrder/${userId}`);
-      console.log('orders details: ', response?.data?.orders)
       setOrders(response.data.orders); 
     } catch (error) {
-      console.error('Error fetching order details:', error);
-      showErrorToast('Failed to fetch order details. Please try again later.');
+      showErrorToast(error.response?.data?.message);
     }
   };
 
@@ -38,18 +38,21 @@ const OrderDetail = () => {
 
   const handleCancelOrder = async (orderId) => {
     try {
+      const cancelledOrder = orders.find((order)=> order._id === orderId);
+      const { totalPrice } = cancelledOrder;
       const response = await axiosInstance.patch('/user/cancelOrder', { orderId });
-      console.log('res cancel order', response.data)
       showSuccessToast(response.data?.message);
       fetchOrderDetails();
     } catch (error) {
-      console.error('Error returning order:', error);
       showErrorToast(error.response?.data?.message);
     }
   };
 
   const handleReturnOrder = async(orderId) => {
     try {
+      const cancelledOrder = orders.find((order)=> order._id === orderId);
+      const { totalPrice } = cancelledOrder;
+
       const response = await axiosInstance.patch('/user/returnOrder', { orderId })
       console.log('res return data: ', response.data)
       showSuccessToast(response.data?.message)
@@ -95,7 +98,19 @@ const OrderDetail = () => {
           },
         }}
       >
-        {orders.map((order) => (
+        {orders.length == 0 ? (
+          <Typography variant="h6" align="center" color="textSecondary" sx={{ marginTop: '20px' }}>
+            No orders are made till now.{' '}
+            <Typography
+              component="span"
+              sx={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}
+              onClick={() => navigate('/products')}
+            >
+              Shop Now
+            </Typography>
+          </Typography>       
+          ) : (
+         orders.map((order) => (
           <Box key={order._id} sx={{ border: '1px solid #ddd', padding: '20px', marginBottom: '20px', position: 'relative' }}>
             <Typography 
               variant="h6" 
@@ -128,129 +143,128 @@ const OrderDetail = () => {
 
             {/* Progress Bar */}
             <Box sx={{ padding: '20px', marginBottom: '20px', marginTop: '10px' }}>
-  {order.status === 'Cancelled' || order.status === 'Returned' ? (
-    <Box sx={{ textAlign: 'center', marginTop: '10px' }}>
-      <CancelIcon
-        sx={{
-          fontSize: '60px',
-          marginBottom: '10px',
-          color: order.status === 'Cancelled' ? '#d9534f' : '#ffc107', // Red for Cancelled, Yellow for Returned
-        }}
-      />
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 'bold',
-          color: order.status === 'Cancelled' ? '#d9534f' : '#ffc107', // Red for Cancelled, Yellow for Returned
-        }}
-      >
-        {order.status === 'Cancelled' ? 'Order Cancelled' : 'Order Returned'}
-      </Typography>
-      <Typography variant="body2" sx={{ color: '#555' }}>
-        {order.status === 'Cancelled'
-          ? 'This order has been cancelled and is no longer being processed.'
-          : 'This order has been returned successfully.'}
-      </Typography>
-    </Box>
-  ) : (
-    <Box sx={{ padding: '20px', marginBottom: '20px', marginTop: '10px' }}>
-      <Box sx={{ position: 'relative', width: '100%' }}>
-        {/* Progress Bar */}
-        <LinearProgress
-          variant="determinate"
-          value={
-            order.status === 'Pending'
-              ? 0
-              : order.status === 'Processing'
-              ? 33
-              : order.status === 'Shipped'
-              ? 66
-              : 100
-          }
-          sx={{
-            position: 'absolute',
-            top: '20px',
-            left: 0,
-            width: '100%',
-            height: '2px',
-            borderRadius: '4px',
-            backgroundColor: '#ddd',
-            '& .MuiLinearProgress-bar': {
-              backgroundColor: '#6c63ff',
-            },
-          }}
-        />
-
-        {/* Icons and Labels */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            position: 'relative',
-          }}
-        >
-          {steps.map((step, index) => {
-            const stepPercentage = (index / (steps.length - 1)) * 100;
-            const progressPercentage =
-              order.status === 'Pending'
-                ? 0
-                : order.status === 'Processing'
-                ? 33
-                : order.status === 'Shipped'
-                ? 66
-                : 100;
-
-            const isActive = stepPercentage <= progressPercentage + 1;
-            const isCurrent = stepPercentage === progressPercentage;
-
-            return (
-              <Box
-                key={step.label}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  position: 'absolute',
-                  left: `${stepPercentage}%`,
-                  transform: 'translateX(-50%)',
-                }}
-              >
-                {/* Icon Circle */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderRadius: '50%',
-                    width: '40px',
-                    height: '40px',
-                    backgroundColor: isActive || isCurrent ? '#6c63ff' : '#ddd',
-                    color: isActive || isCurrent ? '#fff' : '#000',
-                  }}
-                >
-                  {React.cloneElement(step.icon, { fontSize: '20px' })}
+              {order.status === 'Cancelled' || order.status === 'Returned' ? (
+                <Box sx={{ textAlign: 'center', marginTop: '10px' }}>
+                  <CancelIcon
+                    sx={{
+                      fontSize: '60px',
+                      marginBottom: '10px',
+                      color: order.status === 'Cancelled' ? '#d9534f' : '#ffc107', // Red for Cancelled, Yellow for Returned
+                    }}
+                  />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: order.status === 'Cancelled' ? '#d9534f' : '#ffc107', // Red for Cancelled, Yellow for Returned
+                    }}
+                  >
+                    {order.status === 'Cancelled' ? 'Order Cancelled' : 'Order Returned'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#555' }}>
+                    {order.status === 'Cancelled'
+                      ? 'This order has been cancelled and is no longer being processed.'
+                      : 'This order has been returned successfully.'}
+                  </Typography>
                 </Box>
+              ) : (
+                <Box sx={{ padding: '20px', marginBottom: '20px', marginTop: '10px' }}>
+                  <Box sx={{ position: 'relative', width: '100%' }}>
+                    {/* Progress Bar */}
+                    <LinearProgress
+                      variant="determinate"
+                      value={
+                        order.status === 'Pending'
+                          ? 0
+                          : order.status === 'Processing'
+                          ? 33
+                          : order.status === 'Shipped'
+                          ? 66
+                          : 100
+                      }
+                      sx={{
+                        position: 'absolute',
+                        top: '20px',
+                        left: 0,
+                        width: '100%',
+                        height: '2px',
+                        borderRadius: '4px',
+                        backgroundColor: '#ddd',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: '#6c63ff',
+                        },
+                      }}
+                    />
 
-                {/* Label */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    marginTop: '5px',
-                    color: isActive || isCurrent ? '#6c63ff' : '#aaa',
-                    fontSize: '12px',
-                  }}
-                >
-                  {step.label}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
-    </Box>
-  )}
-</Box>
+                    {/* Icons and Labels */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        position: 'relative',
+                      }}
+                    >
+                      {steps.map((step, index) => {
+                        const stepPercentage = (index / (steps.length - 1)) * 100;
+                        const progressPercentage =
+                          order.status === 'Pending'
+                            ? 0
+                            : order.status === 'Processing'
+                            ? 33
+                            : order.status === 'Shipped'
+                            ? 66
+                            : 100;
 
+                        const isActive = stepPercentage <= progressPercentage + 1;
+                        const isCurrent = stepPercentage === progressPercentage;
+
+                        return (
+                          <Box
+                            key={step.label}
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              position: 'absolute',
+                              left: `${stepPercentage}%`,
+                              transform: 'translateX(-50%)',
+                            }}
+                          >
+                            {/* Icon Circle */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderRadius: '50%',
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: isActive || isCurrent ? '#6c63ff' : '#ddd',
+                                color: isActive || isCurrent ? '#fff' : '#000',
+                              }}
+                            >
+                              {React.cloneElement(step.icon, { fontSize: '20px' })}
+                            </Box>
+
+                            {/* Label */}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                marginTop: '5px',
+                                color: isActive || isCurrent ? '#6c63ff' : '#aaa',
+                                fontSize: '12px',
+                              }}
+                            >
+                              {step.label}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+            </Box>
 
             {/* Toggle Product List Button */}
             <Button
@@ -371,7 +385,8 @@ const OrderDetail = () => {
               </Button>
             )}
           </Box>
-        ))}
+        ))
+      )}
       </Box>
     </Box>
   );

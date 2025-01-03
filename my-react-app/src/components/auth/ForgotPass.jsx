@@ -49,7 +49,7 @@ const ForgotPass = () => {
 
   return (
     <>
-      <CssBaseline /> {/* Adding CSSBaseline for global reset */}
+      <CssBaseline />
       <Box
         sx={{
           display: 'flex',

@@ -29,9 +29,20 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
   };
 
   useEffect(() => {
-    startTimer(); 
-    requestOtp(); 
-  }, [open]);
+    console.info('loaded otp form but not opened....')
+    if (open) {
+      console.warn('otp this is opened')
+      if (isSignup) {
+        console.log('for signup user')
+        startTimer(); 
+        requestOtp();
+      } else {
+        console.log('for forgot password')
+        startTimer();
+        requestOtp();
+      }
+    }
+  }, [open, isSignup]);
 
   const requestOtp = async (isResend) => {
     try {
@@ -40,7 +51,7 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
       toast.success(response?.data?.message);
     } catch (error) {
       console.error('Error while requesting OTP:', error);
-      // toast.error('Failed to send OTP. Please try again.');
+      toast.error('Failed to send OTP. Please try again.');
     }
   };
 

@@ -14,9 +14,10 @@ const GoogleAuth = () => {
         });
 
         console.log('google res = ', res.data)
-        const { userId, name } = res.data;
+        const { userId, userEmail } = res.data;
 
         localStorage.setItem('userId', userId);
+        localStorage.setItem('email', userEmail)
         showSuccessToast('Google Login Successful!');
         navigate('/home');
       }

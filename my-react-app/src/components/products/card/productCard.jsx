@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardMedia, CardContent, Typography, IconButton, Box, Tooltip } from '@mui/material';
-import { AddShoppingCart, FavoriteBorder } from '@mui/icons-material';
+import { AddShoppingCart, Favorite, FavoriteBorderRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
@@ -8,10 +8,10 @@ import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
 
 const ProductCard = ({ product = {}, variant = "default" }) => {  // Default product as an empty object
   const navigate = useNavigate();
+  const userId = localStorage.getItem('userId');
 
   const handleAddToCart = async (event) => {
     event.stopPropagation(); 
-    const userId = localStorage.getItem('userId');
     try {
       const response = await axiosInstance.post('/user/cart', { userId, productId: product._id, quantity: 1 });
 
@@ -23,8 +23,16 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
     }
   };
 
-  const handleAddToWishlist = () => {
-    console.log('Added to wishlist:', product);
+  const handleAddToWishlist = async (event) => {
+    event.stopPropagation();
+    try {
+      const response = await axiosInstance.post('/user/addWishlist', { userId, productId: product._id });
+      console.log('res wishling: ', response.data);
+      showSuccessToast('Added to wishlist')
+    } catch (error) {
+      console.log('error while adding wishlist: ', error);
+      showErrorToast(error.response.data.message);
+    }
   };
 
   const handleCardClick = () => {
@@ -134,7 +142,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
           </Tooltip>
           <Tooltip title="Add to Wishlist">
             <IconButton onClick={handleAddToWishlist} color="error">
-              <FavoriteBorder />
+              <Favorite />
             </IconButton>
           </Tooltip>
         </Box>

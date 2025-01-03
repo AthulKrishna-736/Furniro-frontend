@@ -1,86 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import { FormControl, InputLabel, Select, MenuItem, Box, Typography, TextField, Button, IconButton, Pagination } from '@mui/material';
-import { Search, Clear } from '@mui/icons-material';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import {
+  FormControl,
+  MenuItem,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  IconButton,
+  Pagination,
+} from '@mui/material';
+import { Search, FilterList, Delete } from '@mui/icons-material';
 import ProductCard from '../card/productCard';
 import axiosInstance from '../../../utils/axiosInstance';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
 
 const ProductsUser = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState([]);
   const [sortValue, setSortValue] = useState('');
+  const [totalPages, setTotalPages] = useState(1);
+  const [cateogory, setCategory] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(''); 
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axiosInstance.get('/user/products');
-        const allProducts = response?.data?.products || [];
-  
-        // Filter out blocked products and categories
-        const unblockedProducts = allProducts.filter(
-          product => !product.isBlocked && !product.category?.isBlocked
-        );
-  
-        // Slice product names to 20 characters if needed
-        const featuredProducts = unblockedProducts.map(product => ({
-          ...product,
-          name: product.name.slice(0, 20), // Slice product name to 20 characters
-        }));
-  
-        setProducts(featuredProducts);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-      }
-    };
-  
-    fetchProducts();
-  }, []);
+  const limit = 8; 
 
-  
-  const handleSortChange = (event) => {
-    const value = event.target.value;
-    setSortValue(value);
+  const fetchProducts = async () => {
+    try {
+      const params = {
+        page,
+        limit,
+        sortBy: sortValue,
+        categoryId : selectedCategoryId,
+      };
 
-    let sortedProducts = [...products];
-
-    switch (value) {
-      case 'low-high':
-        sortedProducts.sort((a, b) => a.salesPrice - b.salesPrice); 
-        break;
-      case 'high-low':
-        sortedProducts.sort((a,b)=> b.salesPrice - a.salesPrice);
-        break;
-      case 'new-arrivals':
-        sortedProducts.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      case 'a-z':
-        sortedProducts.sort((a, b) => a.name.localeCompare(b.name)); // A-Z
-        break;
-      case 'z-a':
-        sortedProducts.sort((a, b) => b.name.localeCompare(a.name)); // Z-A
-        break;
-      default:
-        break;
+      const response = await axiosInstance.get('/user/products', { params });
+      const { products: fetchedProducts, totalPages } = response.data;
+      setProducts(fetchedProducts);
+      setTotalPages(totalPages);
+    } catch (err) {
+      console.error('Error fetching products:', err);
     }
-
-    setProducts(sortedProducts);
-  
   };
 
+  useEffect(()=>{
+    const fetchCategory = async () => {
+      try {
+        const response = await axiosInstance.get('/admin/getCat')
+        setCategory(response.data.categories)
+      } catch (error) {
+        console.log('error fetch cat in filter: ',error);
+      }
+    }
+    fetchCategory()
+  },[])
 
-  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  useEffect(() => {
+    fetchProducts();
+  }, [page, sortValue, selectedCategoryId]); 
+
+  const handleSortChange = (event) => setSortValue(event.target.value);
+
+  const handleCategorySelect = (categoryId) => {
+    setSelectedCategoryId(categoryId);
+    setPage(1);
+  };
+  
+  const handleSearchChange = (event) => setSearchQuery(event.target.value);
+
+  useEffect(() => {
+      const filteredProducts = products.filter((product) =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setProducts(filteredProducts);
+  }, [searchQuery, products]);
 
   const handlePageChange = (event, value) => setPage(value);
 
   const handleClearFilters = () => {
     setSearchQuery('');
     setSortValue('');
-    setProducts([...products]);
-  }
+    setSelectedCategoryId('');
+    setPage(1); 
+    fetchProducts();
+  };
 
   return (
     <Box sx={{ padding: '2rem', marginTop: '30px', textAlign: 'center' }}>
@@ -99,7 +101,7 @@ const ProductsUser = () => {
           marginBottom: '2rem',
         }}
       >
-        {/* Styled Search Bar */}
+        {/* Search Bar */}
         <TextField
           label="Search Products"
           variant="outlined"
@@ -126,46 +128,152 @@ const ProductsUser = () => {
           }}
         />
 
-        {/* Styled Filter Button */}
+        {/* Filter Dropdown */}
         <FormControl
-      variant="standard"
-      sx={{
-        minWidth: 150,
-        '& .MuiSelect-root': {
-          padding: '0.4rem 1rem',
-          fontSize: '0.9rem',
-          color: '#000',
-        },
-        '& .MuiOutlinedInput-notchedOutline': {
-          border: 'none',
-        },
-        '& .MuiSvgIcon-root': {
-          color: '#000', // Arrow color
-        },
-      }}
-    >
-      <Select
-        value={sortValue}
-        onChange={handleSortChange}
-        displayEmpty
-        sx={{
-          border: '1px solid #ddd',
-          borderRadius: '10px',
-          backgroundColor: '#fff',
-        }}
-      >
-        <MenuItem value="" disabled>
-          Filter 
-        </MenuItem>
-        <MenuItem value="low-high">Price: Low to High</MenuItem>
-        <MenuItem value="high-low">Price: High to Low</MenuItem>
-        <MenuItem value="new-arrivals">New Arrivals</MenuItem>
-        <MenuItem value="a-z">aA-zZ</MenuItem>
-        <MenuItem value="z-a">zZ-aA</MenuItem>
-      </Select>
-    </FormControl>
+          sx={{
+            position: 'relative',
+            minWidth: 100,
+            '&:hover > .dropdown': { display: 'flex' },
+          }}
+        >
+          {/* Filter Button */}
+          <Button
+            sx={{
+              textTransform: 'capitalize',
+              border: '1px solid #ddd',
+              borderRadius: '10px',
+              backgroundColor: '#fff',
+              width: '100%',
+              padding: '10px',
+              fontWeight: 'bold',
+              color: '#333',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+            startIcon={<FilterList />}
+          >
+            Filter
+          </Button>
 
-        {/* Styled Clear Button */}
+          {/* Dropdown Menu */}
+          <Box
+            className="dropdown"
+            sx={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              width: '440px',
+              background: '#fff',
+              border: '1px solid #ddd',
+              borderRadius: '10px',
+              zIndex: 10,
+              display: 'none',
+              flexDirection: 'row', 
+              gap: '20px',
+              padding: '15px',
+              boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            {/* Dropdown Sections */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#444',
+                  borderBottom: '1px solid #ddd',
+                  paddingBottom: '5px',
+                }}
+              >
+                Price
+              </Typography>
+              <MenuItem
+                onClick={() => handleSortChange({ target: { value: 'low-high' } })}
+                sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+              >
+                Low to High
+              </MenuItem>
+              <MenuItem
+                onClick={() => handleSortChange({ target: { value: 'high-low' } })}
+                sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+              >
+                High to Low
+              </MenuItem>
+            </Box>
+
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#444',
+                  borderBottom: '1px solid #ddd',
+                  paddingBottom: '5px',
+                }}
+              >
+                Latest
+              </Typography>
+              <MenuItem
+                onClick={() => handleSortChange({ target: { value: 'new-arrivals' } })}
+                sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+              >
+                New Arrivals
+              </MenuItem>
+            </Box>
+
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#444',
+                  borderBottom: '1px solid #ddd',
+                  paddingBottom: '5px',
+                }}
+              >
+                Name
+              </Typography>
+              <MenuItem
+                onClick={() => handleSortChange({ target: { value: 'a-z' } })}
+                sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+              >
+                A-Z
+              </MenuItem>
+              <MenuItem
+                onClick={() => handleSortChange({ target: { value: 'z-a' } })}
+                sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+              >
+                Z-A
+              </MenuItem>
+            </Box>
+
+            {/* Dynamic Categories Section */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#444',
+                  borderBottom: '1px solid #ddd',
+                  paddingBottom: '5px',
+                }}
+              >
+                Categories
+              </Typography>
+              {cateogory.map((cat, idx) => (
+                <MenuItem
+                  key={idx}
+                  onClick={() => handleCategorySelect(cat.id)}
+                  sx={{ padding: '8px', borderRadius: '5px', '&:hover': { backgroundColor: '#f5f5f5' } }}
+                >
+                  {cat.name}
+                </MenuItem>
+              ))}
+            </Box>
+          </Box>
+        </FormControl>
+
+
+        {/* Clear Filters Button */}
         <Button
           variant="text"
           onClick={handleClearFilters}
@@ -176,11 +284,8 @@ const ProductsUser = () => {
             color: 'gray',
             borderColor: '#d32f2f',
             borderRadius: '0px',
-            '&:hover': {
-              backgroundColor: '#ffebee',
-              borderColor: '#b71c1c',
-            },
           }}
+          startIcon={<Delete />}
         >
           Clear All
         </Button>
@@ -194,22 +299,19 @@ const ProductsUser = () => {
           gap: '20px',
         }}
       >
-        <>
-        {/* <ToastContainer position="top-right" autoClose={2000} hideProgressBar /> */}
-        {products
-          .filter((product) =>
-            product.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .map((product) => (
+        {products.length > 0 ? (
+          products.map((product) => (
             <ProductCard key={product._id} product={product} />
-          ))}
-          </>
+          ))
+        ) : (
+          <Typography>No products found.</Typography>
+        )}
       </Box>
 
       {/* Pagination */}
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
         <Pagination
-          count={10}
+          count={totalPages}
           page={page}
           onChange={handlePageChange}
           variant="outlined"

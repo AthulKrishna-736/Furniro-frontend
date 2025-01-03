@@ -9,8 +9,6 @@ import { showErrorToast } from "../../utils/toastUtils";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import GoogleAuth from "./GoogleAuth";
-import { toast } from "react-toastify";
-
 
 const LoginForm = ({ isAdmin = false }) => {
     const [formData, setFormData] = useState({
@@ -88,7 +86,7 @@ const LoginForm = ({ isAdmin = false }) => {
 
         } catch (error) {
             console.log(error.response?.data)
-            toast.error(error.response?.data?.message)
+            showErrorToast(error.response?.data?.message)
         }
     }
 

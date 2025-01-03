@@ -64,7 +64,7 @@ const Footer = () => {
             Account
         </Typography>
         <Box>
-            <Button onClick={() => navigate('/my-account')} sx={{ color: 'inherit', display: 'block', textAlign: 'left', padding: '2px 0' }}>
+            <Button onClick={() => navigate('/account')} sx={{ color: 'inherit', display: 'block', textAlign: 'left', padding: '2px 0' }}>
             My Account
             </Button>
             <Button onClick={() => navigate('/login')} sx={{ color: 'inherit', display: 'block', textAlign: 'left', padding: '2px 0' }}>

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { Box, Container, Button, Modal } from '@mui/material';
-import AdminSidebar from '../../components/admin/AdminSidebar'; // Sidebar
+import AdminSidebar from '../../components/sidebar/AdminSidebar'; 
 import CategoryTable from '../../components/category/CategoryTable';
 import CategoryForm from '../../components/category/CategoryForm';
-import AdminNavbar from '../../components/admin/AdminNav';
+import AdminNavbar from '../../components/header/AdminNav';
 import axiosInstance from '../../utils/axiosInstance';
 
 const CategoryPage = () => {

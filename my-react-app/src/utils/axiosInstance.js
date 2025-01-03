@@ -23,7 +23,7 @@ axiosInstance.interceptors.request.use((config)=>{
     } else {
       config.data = {
         ...config.data,
-        email: email,
+        emailInt: email,
       };
     }
   }
@@ -39,7 +39,7 @@ axiosInstance.interceptors.response.use(
   (response)=> response,
   (error)=>{
     console.log('error in interceptor')
-    const { status, data } = error.response;
+    const { status, data } = error?.response;
     console.log('status code and data: ',[status, data, data?.message]);
 
     if(error.response && error.response.status == 403 && error.response?.data?.message == 'User is blocked.'){
@@ -47,7 +47,7 @@ axiosInstance.interceptors.response.use(
       console.log('checking the error and redirecting...')
 
       if(window.location.pathname == '/login' && isBlocked){
-        showErrorToast('You have been blocked.')
+        showErrorToast('Login is restricted')
       }else{
         if(isBlocked){
           showErrorToast('You have been blocked. Redirecting to login...')
@@ -62,7 +62,7 @@ axiosInstance.interceptors.response.use(
   }
 )
 
-
+//token jwt 
 axiosInstance.interceptors.response.use(
     (response) => response, 
     async (error) => {

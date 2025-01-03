@@ -1,6 +1,6 @@
 import React from 'react';
-import UserSidebar from '../../../components/user/userprofile/UserSidebar'; // Import the UserSidebar component
-import Navbar from '../../../components/header/Navabar'; // Import the Navbar component
+import UserSidebar from '../../../components/sidebar/UserSidebar'; 
+import Navbar from '../../../components/header/Navabar'; 
 import { Box, Typography } from '@mui/material';
 
 const UserProfile = () => {

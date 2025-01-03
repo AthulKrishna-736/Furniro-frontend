@@ -22,6 +22,9 @@ const SignUpForm = () => {
     const [errors, setErrors] = useState({});
     const { firstName, lastName, email, password } = formData
 
+    useEffect(()=>{
+        console.log('localstore in useEffect in singnup: ', localStorage)
+    },[])
 
     useEffect(()=>{
         if(otpVerified){
@@ -72,8 +75,9 @@ const SignUpForm = () => {
         try {
             const checkuser = await axiosInstance.post('/user/checkUser', { email })
             console.log('check user signup = ', checkuser)
+            console.log('localstorage in signup: ', localStorage)
 
-            if(checkuser?.data?.message == 'user not found. Proceed to signin'){
+            if(checkuser?.data?.message == 'User not found. Proceed to signup.'){
                 setOtpModalOpen(true);
                 return;
             }else{

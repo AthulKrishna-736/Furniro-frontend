@@ -1,34 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast, ToastContainer } from 'react-toastify';
-import UserSidebar from '../../../components/user/userprofile/UserSidebar';
+import { ToastContainer } from 'react-toastify';
+import UserSidebar from '../../../components/sidebar/UserSidebar';
 import Navbar from '../../../components/header/Navabar';
-import { setUserDetails } from '../../../redux/features/userAuth';
-import axiosInstance from '../../../utils/axiosInstance';
-import ProfileDetails from '../../../components/user/userprofile/ProfileDetails';
+import ProfileDetails from '../../../components/profile/ProfileDetails';
 
 
 const UserAccountPage = () => {
-  const dispatch = useDispatch();
-
-  const userEmail = useSelector((state)=> state.userAuth.userEmail);
-  console.log('useremail in useraccountpage: ', userEmail);
-
-  useEffect(()=>{
-    const getUserDetails = async () => {
-      try {
-        const response = await axiosInstance.post('/user/getUserDetail', { email: userEmail });
-        console.log('res data: ', response?.data?.user)
-        dispatch(setUserDetails(response?.data?.user));
-      } catch (error) {
-        console.log('error userdetail: ',error);
-        toast.error(error.response?.data?.message);
-      }
-    }
-    getUserDetails();
-  },[])
-
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>

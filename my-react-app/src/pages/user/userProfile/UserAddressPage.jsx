@@ -1,9 +1,9 @@
 import React from 'react';
-import UserSidebar from '../../../components/user/userprofile/UserSidebar'; // Import the UserSidebar component
-import Address from '../../../components/user/userprofile/Address'; // Import the Address component
-import { Box, Container, Grid, Typography } from '@mui/material'; // Import necessary MUI components
-import { ToastContainer } from 'react-toastify'; // Toast notifications
-import Navbar from '../../../components/header/Navabar'; // Import Navbar
+import UserSidebar from '../../../components/sidebar/UserSidebar'; 
+import Address from '../../../components/address/Address'; 
+import { Box, Typography } from '@mui/material';
+import { ToastContainer } from 'react-toastify'; 
+import Navbar from '../../../components/header/Navabar';
 
 const UserAddressPage = () => {
   return (
@@ -31,7 +31,7 @@ const UserAddressPage = () => {
           </Typography>
 
           <Box sx={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: 3}}>
-            <Address /> {/* Address component where the address logic is */}
+            <Address />
           </Box>
         </Box>
       </Box>

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { AiOutlineDashboard, AiOutlineShoppingCart, AiOutlineAppstoreAdd, AiOutlineUsergroupAdd } from 'react-icons/ai';
+import { CardGiftcard, BarChart } from '@mui/icons-material';
 import { BiCategoryAlt, BiImageAdd } from 'react-icons/bi';
+import LocalOffer from '@mui/icons-material/LocalOffer'
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
@@ -222,6 +224,70 @@ const AdminSidebar = () => {
         </ListItemButton>
 
         <Divider sx={{ margin: '5px 0' }} />
+
+        <ListItemButton
+          onClick={() => handleNavigation('/admin-coupons')}
+          sx={{
+            backgroundColor: selected === '/admin-coupons' ? '#e3f2fd' : 'transparent',
+            color: selected === '/admin-coupons' ? '#1976d2' : '#333',
+            '&:hover': { backgroundColor: '#e3f2fd', color: '#1976d2', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' },
+            transition: 'all 0.3s ease',
+            borderRadius: '8px',
+          }}
+        >
+          <ListItemIcon sx={{ color: selected === '/admin-coupons' ? '#1976d2' : '#555', fontSize: '22px', transition: 'color 0.3s ease' }}>
+            <CardGiftcard />
+          </ListItemIcon>
+          <ListItemText primary="Coupons" sx={{ fontWeight: '500', fontSize: '16px' }} />
+        </ListItemButton>
+
+        <Divider sx={{ margin: '5px 0' }} />
+
+        <ListItemButton
+          onClick={() => handleNavigation('/admin-offers')}
+          sx={{
+            backgroundColor: selected === '/admin-offers' ? '#e3f2fd' : 'transparent',
+            color: selected === '/admin-offers' ? '#1976d2' : '#333',
+            '&:hover': { backgroundColor: '#e3f2fd', color: '#1976d2', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' },
+            transition: 'all 0.3s ease',
+            borderRadius: '8px',
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              color: selected === '/admin-offers' ? '#1976d2' : '#555',
+              fontSize: '22px',
+              transition: 'color 0.3s ease',
+            }}
+          >
+            <LocalOffer /> {/* Icon for Offers */}
+          </ListItemIcon>
+          <ListItemText primary="Offers" sx={{ fontWeight: '500', fontSize: '16px' }} />
+        </ListItemButton>
+
+        <Divider sx={{ margin: '5px 0' }} />
+
+<ListItemButton
+  onClick={() => handleNavigation('/admin-sales-report')}
+  sx={{
+    backgroundColor: selected === '/admin-sales-report' ? '#e3f2fd' : 'transparent',
+    color: selected === '/admin-sales-report' ? '#1976d2' : '#333',
+    '&:hover': { backgroundColor: '#e3f2fd', color: '#1976d2', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' },
+    transition: 'all 0.3s ease',
+    borderRadius: '8px',
+  }}
+>
+  <ListItemIcon
+    sx={{
+      color: selected === '/admin-sales-report' ? '#1976d2' : '#555',
+      fontSize: '22px',
+      transition: 'color 0.3s ease',
+    }}
+  >
+    <BarChart /> {/* Icon for Sales Report */}
+  </ListItemIcon>
+  <ListItemText primary="Sales Report" sx={{ fontWeight: '500', fontSize: '16px' }} />
+</ListItemButton>
 
       </List>
     </Box>

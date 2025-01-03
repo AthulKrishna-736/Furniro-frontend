@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import AdminSidebar from '../../components/admin/AdminSidebar'; // Sidebar
-import UserTable from '../../components/user/userTable'; // User Table
-import AdminNavbar from '../../components/admin/AdminNav';
+import AdminSidebar from '../../components/sidebar/AdminSidebar'; 
+import UserTable from '../../components/user/userTable';
+import AdminNavbar from '../../components/header/AdminNav';
 import axiosInstance from '../../utils/axiosInstance';
 
 const UserListPage = () => {

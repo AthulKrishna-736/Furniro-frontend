@@ -32,7 +32,7 @@ const OrderTable = ({ orders, handleSaveStatus }) => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const rowsPerPage = 5;
+  const rowsPerPage = 7;
   const totalPages = Math.ceil(orders.length / rowsPerPage);
 
   const handleStatusChange = (orderId, newStatus) => {

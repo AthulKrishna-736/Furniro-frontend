@@ -11,7 +11,7 @@ import {
   Box,
   Pagination,
 } from '@mui/material';
-import ConfirmationAlert from '../admin/Alertmsg';
+import ConfirmationAlert from '../customAlert/Alertmsg';
 
 
 const UserTable = ({ users, onBlockUser }) => {

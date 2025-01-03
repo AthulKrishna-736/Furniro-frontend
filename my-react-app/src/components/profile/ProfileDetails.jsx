@@ -13,10 +13,9 @@ import {
   DialogTitle,
 } from '@mui/material';
 import { Visibility, VisibilityOff, Edit, Check } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
-import axiosInstance from '../../../utils/axiosInstance';
-import { toast } from 'react-toastify';
-import { validatePass } from '../../../utils/validation';
+import axiosInstance from '../../utils/axiosInstance';
+import { validatePass } from '../../utils/validation';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 const ProfileDetails = () => {
   const [editingField, setEditingField] = useState(null);
@@ -33,19 +32,26 @@ const ProfileDetails = () => {
     password: '',
   });
 
-  const userInfo = useSelector((state) => state.userAuth.userDetails);
+  const fetchUserDetails = async()=>{
+    try {
+      const email = localStorage.getItem('email');
+      const response = await axiosInstance.post('/user/getUserDetail', { email });
+      setUserDetails(response.data.user);
+      setOriginalDetails(response.data?.user);
+    } catch (error) {
+      showErrorToast(error.response.data?.message);
+    }
+  }
+
 
   useEffect(() => {
-    if (userInfo) {
-      setUserDetails(userInfo);
-      setOriginalDetails(userInfo);
-    }
-  }, [userInfo, originalDetails]);
+    fetchUserDetails();
+  }, []);
 
 
   const handleInputChange = (field, value) => {
     setUserDetails((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: '' })); // Clear errors on edit
+    setErrors((prev) => ({ ...prev, [field]: '' })); 
   };
 
   const validateInputs = () => {
@@ -78,7 +84,7 @@ const ProfileDetails = () => {
 
     try {
       const response = await axiosInstance.patch('/user/updateUserDetails', dataToSave);
-      toast.success(response?.data?.message);
+      showSuccessToast(response?.data?.message);
       console.log('res update user: ', response.data)
       setUserDetails((prev) => ({
         ...prev,
@@ -86,9 +92,10 @@ const ProfileDetails = () => {
       }));
 
       setOriginalDetails(userDetails); 
+      fetchUserDetails();
       setConfirmationOpen(false);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update details.');
+      showErrorToast(error.response?.data?.message || 'Failed to update details.');
     }
   };
 
@@ -130,7 +137,7 @@ const ProfileDetails = () => {
                 ? 'Last Name'
                 : 'Email'
             }
-            value={userDetails[field].slice(0, 25)} // Display part of the email or name
+            value={userDetails[field]}
             disabled
             fullWidth
           />
@@ -139,58 +146,39 @@ const ProfileDetails = () => {
 
       {/* Password Field */}
       <Box sx={{ marginBottom: '25px' }}>
-        <TextField
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          value={userDetails.password.slice(0, 25)} // Display only part of the password
-          onChange={(e) =>
-            editingField === 'password' && handleInputChange('password', e.target.value)
-          }
-          disabled={editingField !== 'password'}
-          fullWidth
-          error={!!errors.password}
-          helperText={errors.password}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              '& fieldset': {
-                borderColor: editingField === 'password' ? '#007bff' : '#ccc',
+        {!userDetails.isGoogleUser && (
+          <TextField
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            value={userDetails.password.slice(0, 15)} 
+            onChange={(e) => editingField === 'password' && handleInputChange('password', e.target.value)}
+            disabled={editingField !== 'password'}
+            fullWidth
+            error={!!errors.password}
+            helperText={errors.password}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: editingField === 'password' ? '#007bff' : '#ccc' },
+                '&:hover fieldset': { borderColor: '#007bff' },
+                '&.Mui-focused fieldset': { borderColor: '#007bff' },
               },
-              '&:hover fieldset': {
-                borderColor: '#007bff',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#007bff',
-              },
-            },
-          }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                {editingField === 'password' ? (
-                  <IconButton onClick={() => setEditingField(null)} sx={{ color: '#28a745' }}>
-                    <Check />
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setEditingField(editingField === 'password' ? null : 'password')} sx={{ color: editingField === 'password' ? '#28a745' : '#007bff' }}>
+                    {editingField === 'password' ? <Check /> : <Edit />}
                   </IconButton>
-                ) : (
-                  <IconButton
-                    onClick={() => setEditingField('password')}
-                    sx={{ color: '#007bff' }}
-                  >
-                    <Edit />
-                  </IconButton>
-                )}
-                {editingField === 'password' && (
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                    sx={{ marginLeft: '10px' }}
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                )}
-              </InputAdornment>
-            ),
-          }}
-        />
+                  {editingField === 'password' && (
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ marginLeft: '10px' }}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  )}
+                </InputAdornment>
+              ),
+            }}
+          />
+        )}
       </Box>
 
       {/* Save Button */}
@@ -207,7 +195,7 @@ const ProfileDetails = () => {
               background: hasChanges ? '#0056b3' : '#ccc',
             },
           }}
-          onClick={handleSaveChanges} // Trigger validation and modal
+          onClick={handleSaveChanges} 
           disabled={!hasChanges}
         >
           Save Changes

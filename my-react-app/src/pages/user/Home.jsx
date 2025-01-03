@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/header/Navabar";
 import Footer from "../../components/footer/Footer";
-import HomeBody from "../../components/home/HomeBody";
+import HomeBody from "../../components/footer/HomeBody";
 import TrendingProducts from "../../components/products/user/TrendingProducts";
 import ProductCardSkeleton from "../../components/products/card/ProductCardSkeleton";
 import Banner from "../../components/header/Banner";
 import { Divider } from "@mui/material";
 import axiosInstance from "../../utils/axiosInstance";
+import { ToastContainer } from "react-toastify";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -47,7 +48,7 @@ const Home = () => {
   return (
     <div>
       <Navbar />
-
+      <ToastContainer/>
       {/* Banner Section */}
       <Banner
         image={banner.length > 0 && banner[0].bannerLocation == 'Home' ? banner[0].image : "https://via.placeholder.com/1200x500"}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/header/Navabar";
 import Footer from "../../components/footer/Footer";
-import HomeBody from "../../components/home/HomeBody";
+import HomeBody from "../../components/footer/HomeBody";
 import TrendingProducts from "../../components/products/user/TrendingProducts";
 import ProductCardSkeleton from "../../components/products/card/ProductCardSkeleton";
 import Banner from "../../components/header/Banner";

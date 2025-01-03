@@ -24,7 +24,10 @@ const Navbar = () => {
     try {
       const response = await axiosInstance.post('/user/logout', {}, { withCredentials: true });
       console.log('response of logout = ', response.data.message);
+      localStorage.removeItem('email');
+      localStorage.removeItem('userEmail');
       dispatch(logoutUser());
+      console.log('localstoreage in navbar: ', localStorage)
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error.response?.data?.message);

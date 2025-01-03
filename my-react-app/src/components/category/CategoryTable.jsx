@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ConfirmationAlert from '../admin/Alertmsg';
+import ConfirmationAlert from '../customAlert/Alertmsg';
 import {
   Table,
   TableBody,

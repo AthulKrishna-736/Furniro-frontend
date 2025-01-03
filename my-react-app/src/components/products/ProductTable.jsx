@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Pagination } from '@mui/material';
 import axiosInstance from '../../utils/axiosInstance';
-import ConfirmationAlert from '../admin/Alertmsg'
+import ConfirmationAlert from '../customAlert/Alertmsg'
 import ProductForm from './ProductForm'; 
 import { toast } from 'react-toastify';
 

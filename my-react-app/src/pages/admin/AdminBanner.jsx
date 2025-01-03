@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Container } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import AdminNavbar from '../../components/admin/AdminNav';
-import ManageBanner from '../../components/admin/ManageBanner';
+import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import AdminNavbar from '../../components/header/AdminNav';
+import ManageBanner from '../../components/header/ManageBanner';
 import axiosInstance from '../../utils/axiosInstance';
 import axios from 'axios';
 

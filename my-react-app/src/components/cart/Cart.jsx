@@ -2,23 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Button, Box, Typography, Grid } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axiosInstance from '../../../utils/axiosInstance';
-import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
+import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 const Cart = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [cartItems, setCartItems] = useState([]);
+  const [loadingState, setLoadingState] = useState({});
 
   const userId = localStorage.getItem('userId');
-  console.log('cart userid: ', userId);
   
   const fetchCart = async () => {
     try {
-        console.log('req cart going backend...')
         const response = await axiosInstance.get(`/user/getCart/${userId}`);
-        console.log('res get cart: ', response?.data);
         setCartItems(response?.data?.cart?.items || []);
     } catch (error) {
         console.error('error fetching cart items: ', error);
@@ -44,25 +42,24 @@ const Cart = () => {
   };
 
   const handleQuantityChange = async (id, action) => {
+    setLoadingState((prev)=> ({ ...prev, [id]: true }));
     try {
       const response = await axiosInstance.patch(`/user/updateQuantity/${userId}`, {
         itemId: id, 
         action: action, 
       });
-  
-      console.log(`Quantity ${action}d for item ID: ${id}`, response?.data);
-  
+    
       fetchCart();
     } catch (error) {
-      console.error(`Failed to ${action} quantity for item ID: ${id}`, error);
       showErrorToast(error.response?.data?.message)
+    } finally {
+      setLoadingState((prev)=> ({ ...prev, [id]: false}));
     }
   };
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.productId.salesPrice * item.quantity), 0);
   };
-  
 
   const handleCheckout = () => {
     navigate('/checkout');
@@ -158,6 +155,7 @@ const Cart = () => {
                   >
                     <Button
                       onClick={() => handleQuantityChange(item._id, 'decrease')}
+                      disabled={loadingState[item._id]}
                       sx={{
                         width: '40px',
                         height: '40px',
@@ -173,6 +171,7 @@ const Cart = () => {
                     </Typography>
                     <Button
                       onClick={() => handleQuantityChange(item._id, 'increase')}
+                      disabled={loadingState[item._id]}
                       sx={{
                         width: '40px',
                         height: '40px',
@@ -234,7 +233,7 @@ const Cart = () => {
           padding: '20px', 
           display: 'flex', 
           flexDirection: 'column', 
-          justifyContent: 'flex-end',  // Pushes everything to the bottom
+          justifyContent: 'flex-end',  
           height: '230px' 
         }}>
           <Typography variant="h4" gutterBottom>
