@@ -31,8 +31,6 @@ const ForgotPass = () => {
       }
       setError(''); 
 
-      // rinede5388@confmin.com
-
       const response = await axiosInstance.post('/user/forgotPass', { email });
   
       console.log('response forgot = ', response?.data);

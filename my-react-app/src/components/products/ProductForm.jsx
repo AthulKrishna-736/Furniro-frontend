@@ -5,6 +5,7 @@ import AvatarEditor from 'react-avatar-editor';
 import { validateProductName, validateProductDescription, validatePrice, validateStockQuantity } from '../../utils/validation';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 const ProductForm = ({ categories, openModal, closeModal, productToEdit, fetchProducts }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -248,22 +249,18 @@ const handleSubmit = async (e) => {
     if (productToEdit) {
       // Edit product
       const response = await axiosInstance.put(`/admin/updateProduct/${productToEdit._id}`, finalData);
-      console.log('Product updated successfully:', response.data.message);
     } else {
       // Add new product
       const response = await axiosInstance.post('/admin/addProducts', finalData);
-      console.log('Product added successfully:', response.data.message);
     }
 
     await fetchProducts();
     resetFormData();
     closeModal();
 
-    toast.success("Product added/updated successfully!");
+    showSuccessToast("Product added/updated successfully!");
   } catch (error) {
-    toast.error(
-      error.response?.data?.message || "Error adding/updating product"
-    );
+    showErrorToast(error.response?.data?.message || "Error adding/updating product");
     console.error("Error during submission:", error);
   } finally {
     setIsLoading(false);

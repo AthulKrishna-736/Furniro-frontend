@@ -13,15 +13,14 @@ const OrdersPage = () => {
   const fetchOrders = async () => {
     try {
       const response = await axiosInstance.get('/admin/getOrders');
+      console.log('res fetchorder: ',response.data?.orders)
       if (response?.data?.orders) {
-        console.log('res order dta: ', response.data?.orders);
         setOrders(response.data.orders);
       } else {
         console.log('No orders found.');
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
-      console.log('Failed to fetch orders. Please try again later.');
     }
   };
   useEffect(() => {

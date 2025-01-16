@@ -7,20 +7,15 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TextField,
   Button,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Pagination
+
 } from "@mui/material";
 import axiosInstance from "../../utils/axiosInstance";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 import ConfirmationAlert from "../customAlert/AlertConfirm";
+import { Add, DeleteOutlineOutlined } from "@mui/icons-material";
+import CouponForm from "./CouponForm";
 
 const CouponTable = () => {
   const [coupons, setCoupons] = useState([]);
@@ -30,47 +25,119 @@ const CouponTable = () => {
     discountValue: "",
     minPrice: "",
     expiryDate: "",
-    usedCount: 0, 
+    count: 0, 
   });
-
+  const [errors, setErrors] = useState({
+    name: "",
+    discountType: "",
+    discountValue: "",
+    minPrice: "",
+    expiryDate: "",
+    count: "",
+  });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+  });
   const [open, setOpen] = useState(false); 
-  const [openDeleteModal, setOpenDeleteModal] = useState(false); // State to control the confirmation modal
-  const [selectedCouponId, setSelectedCouponId] = useState(null); // To store the ID of the coupon to be deleted
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [selectedCouponId, setSelectedCouponId] = useState(null); 
 
   useEffect(() => {
-    fetchCoupons();
-  }, []);
+    fetchCoupons(pagination.currentPage);
+  }, [pagination.currentPage]);
 
-  // Fetch coupons from the server
-  const fetchCoupons = async () => {
+
+  const fetchCoupons = async (page = 1) => {
     try {
-      const { data } = await axiosInstance.get("/admin/getCoupons");
+      const { data } = await axiosInstance.get(`/admin/getCoupons?page=${page}`);
+      console.log('data res in coupon: ',data)
       setCoupons(data.coupons);
+      setPagination({
+        currentPage: data.pagination.currentPage,
+        totalCount: data.pagination.totalCount,
+        totalPages: data.pagination.totalPages,
+      })
     } catch (error) {
-      showErrorToast(error.response?.data?.message || "Failed to fetch coupons");
+      console.error(error.response?.data?.message || "Failed to fetch coupons");
     }
   };
 
+  const handlePageChange = async(event, value) =>{
+    setPagination((prev) => ({ ...prev, currentPage: value }))
+  }
+
+  const validateField = (name, value) => {
+    const nameRegex = /^[a-zA-Z0-9\s]+$/;
+    
+    switch (name) {
+      case "name":
+        if (!value || !nameRegex.test(value)) {
+          return "Name must contain only alphanumeric characters and spaces";
+        }
+        break;
+      case "discountValue":
+      case "minPrice":
+      case "count":
+        if (!value || Number(value) <= 0) {
+          return `${name === "discountValue" ? "Discount value" : name === "minPrice" ? "Minimum price" : "Count"} must be a positive number`;
+        }
+        break;
+      case "expiryDate":
+        if (!value || new Date(value) <= new Date()) {
+          return "Expiry date must be a valid future date";
+        }
+        break;
+      default:
+        return ""; 
+    }
+    return "";
+  };
+  
+  const validateForm = (formData) => {
+    const errors = {};
+    for (const field in formData) {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        errors[field] = error;
+      }
+    }
+    return errors;
+  };
+  
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+  
+    const errorMessage = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMessage }));
+  
     setNewCoupon((prev) => ({ ...prev, [name]: value }));
   };
-
+  
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
+    const errors = validateForm(newCoupon);
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+  
     try {
       await axiosInstance.post("/admin/createCoupon", newCoupon);
       showSuccessToast("Coupon created successfully!");
-      fetchCoupons(); // Fetch the updated coupon list from the server
+      fetchCoupons(pagination.currentPage);
       setNewCoupon({
         name: "",
         discountType: "PERCENTAGE",
         discountValue: "",
         minPrice: "",
         expiryDate: "",
-        usedCount: 0, // Reset usedCount after coupon creation
+        count: 0,
+        usedCount: 0,
       });
-      setOpen(false); // Close the modal after coupon is created
+      setOpen(false);
     } catch (error) {
       showErrorToast(error.response?.data?.message || "Failed to create coupon");
     }
@@ -80,162 +147,126 @@ const CouponTable = () => {
     try {
       await axiosInstance.delete(`/admin/deleteCoupon`, { data: { couponId: id } });
       showSuccessToast("Coupon deleted successfully!");
-      fetchCoupons(); // Fetch the updated coupon list from the server
-      setOpenDeleteModal(false); // Close the delete confirmation modal
+      fetchCoupons(pagination.currentPage); 
+      setOpenDeleteModal(false);
     } catch (error) {
       showErrorToast(error.response?.data?.message || "Failed to delete coupon");
     }
   };
 
   const handleModalOpen = () => {
-    setOpen(true); // Open the modal for creating coupon
+    setOpen(true);
+    setNewCoupon({
+      name: "",
+      discountType: "PERCENTAGE",
+      discountValue: "",
+      minPrice: "",
+      expiryDate: "",
+      count: 0,
+      usedCount: 0,
+    });
   };
 
   const handleModalClose = () => {
-    setOpen(false); // Close the create coupon modal
+    setErrors((prev)=>({
+      name: "",
+      discountType: "",
+      discountValue: "",
+      minPrice: "",
+      expiryDate: "",
+      count: "",
+    }));
+    setOpen(false); 
   };
 
   const handleDeleteModalOpen = (id) => {
-    setSelectedCouponId(id); // Set the coupon ID to be deleted
-    setOpenDeleteModal(true); // Open the confirmation modal
+    setSelectedCouponId(id); 
+    setOpenDeleteModal(true); 
   };
 
   const handleDeleteModalClose = () => {
-    setOpenDeleteModal(false); // Close the confirmation modal
-    setSelectedCouponId(null); // Clear the selected coupon ID
+    setOpenDeleteModal(false);
+    setSelectedCouponId(null); 
   };
 
   return (
     <div style={{ padding: "20px" }}>
       {/* Button to trigger modal */}
-      <Button variant="contained" color="primary" onClick={handleModalOpen} style={{ marginBottom: "20px" }}>
+      <Button startIcon={<Add/>} onClick={handleModalOpen} style={{ marginBottom: "20px" }}>
         Create Coupon
       </Button>
 
       {/* Coupon Table */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Discount Type</TableCell>
-              <TableCell>Discount Value</TableCell>
-              <TableCell>Minimum Price</TableCell>
-              <TableCell>Expiry Date</TableCell>
-              <TableCell>Used Count</TableCell> {/* Added Used Count column */}
-              <TableCell>Actions</TableCell>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ bgcolor: "#f5f5f5" }}>
+            <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Discount Type</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Discount Value</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Minimum Price</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Expiry Date</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Count</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Used</TableCell>
+            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {coupons.map((coupon) => (
+            <TableRow
+              key={coupon._id}
+              sx={{
+                "&:nth-of-type(odd)": { bgcolor: "#fafafa" },
+                "&:hover": { bgcolor: "#f1f1f1" },
+              }}
+            >
+              <TableCell>{coupon.name}</TableCell>
+              <TableCell>{coupon.discountType}</TableCell>
+              <TableCell>{coupon.discountValue}</TableCell>
+              <TableCell>{coupon.minPrice}</TableCell>
+              <TableCell>{new Date(coupon.expiryDate).toLocaleDateString()}</TableCell>
+              <TableCell>{coupon.count}</TableCell>
+              <TableCell>{coupon.usedCount || 0}</TableCell>
+              <TableCell sx={{ textAlign: "center" }}>
+                <Button
+                  sx={{
+                    color: "#f24f42",
+                    "&:hover": {
+                      bgcolor: "rgba(242, 79, 66, 0.1)",
+                    },
+                  }}
+                  onClick={() => handleDeleteModalOpen(coupon._id)}
+                >
+                  <DeleteOutlineOutlined />
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {coupons.map((coupon) => (
-              <TableRow key={coupon._id}>
-                <TableCell>{coupon.name}</TableCell>
-                <TableCell>{coupon.discountType}</TableCell>
-                <TableCell>{coupon.discountValue}</TableCell>
-                <TableCell>{coupon.minPrice}</TableCell>
-                <TableCell>{new Date(coupon.expiryDate).toLocaleDateString()}</TableCell>
-                <TableCell>{coupon.usedCount}</TableCell> {/* Display Used Count */}
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleDeleteModalOpen(coupon._id)} // Open confirmation modal on delete click
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
 
-      {/* Modal for creating coupon */}
-      <Dialog
+      <Pagination 
+      count={pagination.totalPages}
+      page={pagination.currentPage}
+      onChange={handlePageChange}
+      color="primary"
+      style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
+      />
+
+      <CouponForm
         open={open}
-        onClose={handleModalClose}
-        sx={{
-          '& .MuiDialog-paper': {
-            width: '450px', 
-            maxWidth: '450px',
-          }
-        }}
-      >
-        <DialogTitle>Create Coupon</DialogTitle>
-        <DialogContent>
-          <form onSubmit={handleCreateCoupon} style={{ display: "grid", gap: "20px" }}>
-            <TextField
-              label="Coupon Name"
-              name="name"
-              value={newCoupon.name}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
-            <FormControl fullWidth>
-              <InputLabel>Discount Type</InputLabel>
-              <Select
-                name="discountType"
-                value={newCoupon.discountType}
-                onChange={handleInputChange}
-              >
-                <MenuItem value="PERCENTAGE">Percentage</MenuItem>
-                <MenuItem value="FLAT">Flat</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Discount Value"
-              name="discountValue"
-              type="number"
-              value={newCoupon.discountValue}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Minimum Price"
-              name="minPrice"
-              type="number"
-              value={newCoupon.minPrice}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Expiry Date"
-              name="expiryDate"
-              type="date"
-              value={newCoupon.expiryDate}
-              onChange={handleInputChange}
-              InputLabelProps={{ shrink: true }}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Used Count"
-              name="usedCount"
-              type="number"
-              value={newCoupon.usedCount}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleModalClose} color="secondary">
-            Cancel
-          </Button>
-          <Button type="submit" onClick={handleCreateCoupon} color="primary">
-            Create Coupon
-          </Button>
-        </DialogActions>
-      </Dialog>
+        handleModalClose={handleModalClose}
+        handleCreateCoupon={handleCreateCoupon}
+        newCoupon={newCoupon}
+        errors={errors}
+        handleInputChange={handleInputChange}
+      />
 
       {/* Confirmation Alert for Deleting Coupon */}
       <ConfirmationAlert
         open={openDeleteModal}
-        onClose={handleDeleteModalClose}
+        onCancel={handleDeleteModalClose}
         onConfirm={() => handleDeleteCoupon(selectedCouponId)} // Call delete on confirmation
         message="Are you sure you want to delete this coupon?"
         title="Delete Coupon"

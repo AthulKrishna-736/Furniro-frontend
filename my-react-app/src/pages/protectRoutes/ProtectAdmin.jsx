@@ -1,32 +1,18 @@
-import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const ProtectAdmin = () => {
+const ProtectAdmin = ({ children }) => {
     const navigate = useNavigate();
 
-    useEffect(()=>{
-        const checkToken = async ()=>{
-            try {
-              console.log('token req gone to backend admin')
-              const response = await axiosInstance.post('/admin/verifyToken', {}, { withCredentials:true })
-              console.log('Token verification success: ', response.data);
-      
-            } catch (error) {
-              console.log(error.response.data.message);
-            }
-          }
-          checkToken() 
-    },[])
-
     useEffect(() => {
-        const adminId = localStorage.getItem('adminId'); // Get userId from localStorage
+        const adminId = localStorage.getItem('adminId'); 
         if (!adminId) {
-          console.log('User is not authenticated. Redirecting to /admin-login...');
-          navigate('/admin-login'); // Redirect to login if no userId is found in localStorage
+            console.log('Admin is not authenticated. Redirecting to /admin-login...');
+            navigate('/admin-login'); 
         }
-      }, [navigate]);
-      
-      return localStorage.getItem('adminId') ? children : null;
-}
+    }, [navigate]);
+
+    return localStorage.getItem('adminId') ? children : null;
+};
 
 export default ProtectAdmin;

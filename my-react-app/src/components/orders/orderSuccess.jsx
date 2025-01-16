@@ -38,7 +38,7 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
 
         {/* Close Button */}
         <IconButton
-          onClick={() => onClose()}
+          onClick={() => { onClose(); navigate('/home'); }}
           sx={{
             position: 'absolute',
             top: '10px',
@@ -56,6 +56,20 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
             color: 'green',
             marginBottom: '20px',
             animation: 'pop 0.4s ease-in-out',
+            '@keyframes pop': {
+              '0%': {
+                transform: 'scale(0)',
+                opacity: 0,
+              },
+              '50%': {
+                transform: 'scale(1.2)',
+                opacity: 1,
+              },
+              '100%': {
+                transform: 'scale(1)',
+                opacity: 1,
+              },
+            },
           }}
         />
         <Typography variant="h4" gutterBottom>
@@ -72,6 +86,9 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
           </Typography>
           <Typography variant="h6">
             <strong>Payment Method:</strong> {orderDetails?.paymentMethod}
+          </Typography>
+          <Typography variant="h6">
+            <strong>Payment Status:</strong> {orderDetails?.paymentStatus}
           </Typography>
           <Typography variant="h6">
             <strong>Ordered By:</strong> {orderDetails?.address?.name}
@@ -95,7 +112,7 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
 
         {/* Link to Homepage */}
         <Link
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/products')}
           sx={{
             display: 'block',
             marginTop: '30px',
@@ -107,7 +124,7 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
             textUnderlineOffset: '4px',
           }}
         >
-          Go to Homepage
+          Explore More Products!
         </Link>
       </Box>
     </Modal>

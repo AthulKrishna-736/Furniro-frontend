@@ -24,13 +24,13 @@ const ProductDetail = () => {
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [mainImage, setMainImage] = useState(''); 
   const [zoomStyle, setZoomStyle] = useState({}); 
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
         const response = await axiosInstance.get(`/user/productDetails/${productId}`);
         const { product, recommendedProducts } = response.data;
-        console.log(response.data);
         setProduct(product);
         setRecommendedProducts(recommendedProducts);
         setMainImage(product.images[0]); 
@@ -63,19 +63,20 @@ const ProductDetail = () => {
 
   const handleAddToCart = async()=>{
     try {
-      console.log('clicked this btn add to cart')
-      const userId = localStorage.getItem('userId');
       const response = await axiosInstance.post('/user/cart', { userId, productId, quantity: 1 });
-      console.log('res add to cart: ', response.data)
       showSuccessToast(response.data?.message);
     } catch (error) {
-      console.log('prdct detail cart err',error.response);
       showErrorToast(error.response?.data?.message);
     }
   }
 
-  const handleAddToWishlist = ()=>{
-    console.log('wishlist clicked')
+  const handleAddToWishlist = async()=>{
+    try {
+      const response = await axiosInstance.post('/user/addWishlist', { userId, productId });
+      showSuccessToast(response?.data?.message)
+    } catch (error) {
+      showErrorToast(error?.response?.data?.message)
+    }
   }
 
   if (loading) {

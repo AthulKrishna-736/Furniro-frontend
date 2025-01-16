@@ -3,7 +3,7 @@ import { Button, Box, Typography, Grid } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
-import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
+import { showErrorToast, showInfoToast, showSuccessToast } from '../../utils/toastUtils';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Cart = () => {
     try {
         const response = await axiosInstance.get(`/user/getCart/${userId}`);
         setCartItems(response?.data?.cart?.items || []);
+        console.log('cart res : ', response.data)
     } catch (error) {
         console.error('error fetching cart items: ', error);
     }
@@ -61,9 +62,25 @@ const Cart = () => {
     return cartItems.reduce((total, item) => total + (item.productId.salesPrice * item.quantity), 0);
   };
 
-  const handleCheckout = () => {
-    navigate('/checkout');
+
+  const handleCheckout = async () => {
+    try {
+      const response = await axiosInstance.get(`/user/getCart/${userId}`)
+      console.log('response block check: ', response.data)
+  
+      if (response.data.blockedItems && response.data.blockedItems.length > 0) {
+        const blockedItemNames = response.data.blockedItems.map(item => item.name).join(', ');
+        showInfoToast(`Blocked items in your cart: ${blockedItemNames}. Please remove them to proceed.`,);
+        return; 
+      }
+  
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Error fetching cart or handling checkout:', error);
+      showErrorToast('An error occurred while checking the cart. Please try again.');
+    }
   };
+  
 
   return (
     <Box sx={{ display: 'flex', padding: '20px' }}>

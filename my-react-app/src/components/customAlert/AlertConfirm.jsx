@@ -20,27 +20,48 @@ const AlertConfirm = ({ open, message, onConfirm, onCancel }) => {
           p: 3,
         }}
       >
-        <Typography id="modal-title" variant="h5" component="h2" gutterBottom>
-         Confirm Action
+        <Typography
+          id="modal-title"
+          variant="h5"
+          component="h2"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            color: "#333333",
+            textAlign: "left", // Align to the left
+          }}
+        >
+          Confirm Action
         </Typography>
-        <Typography id="modal-description" sx={{ mb: 3, fontSize:'20px' }}>
+        <Typography
+          id="modal-description"
+          sx={{
+            mb: 3,
+            fontSize: "18px",
+            color: "#555555",
+            lineHeight: 1.6,
+            textAlign: "left", // Align to the left
+          }}
+        >
           {message}
         </Typography>
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
           <Button onClick={onCancel} color="#666666">
             Cancel
           </Button>
-          <Button onClick={onConfirm}
+          <Button
+            onClick={onConfirm}
             sx={{
               color: "white",
               backgroundColor: "#333333",
-            }}>
+            }}
+          >
             Confirm
           </Button>
         </Box>
       </Box>
     </Modal>
   );
-}
+};
 
 export default AlertConfirm;

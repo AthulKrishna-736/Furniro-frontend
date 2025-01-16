@@ -8,8 +8,8 @@ const UserWalletPage = () => {
   return (
     <Box
       sx={{
-        height: '100vh', // Ensure the page height takes up the full viewport
-        overflow: 'hidden', // Disable scrolling
+        height: '100vh',
+        overflow: 'hidden',
       }}
     >
       {/* Navbar at the top */}
@@ -24,7 +24,7 @@ const UserWalletPage = () => {
         {/* Sidebar */}
         <Box
           sx={{
-            width: '250px',
+            width: '270px',
             padding: '0px',
             backgroundColor: '#f4f4f4',
           }}
@@ -37,7 +37,7 @@ const UserWalletPage = () => {
           sx={{
             flex: 1,
             padding: '20px',
-            overflow: 'hidden', // Disable scrolling for the wallet section
+            overflow: 'hidden',
           }}
         >
           <Wallet />

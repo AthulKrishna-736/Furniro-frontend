@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Container } from '@mui/material';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
 import ProductForm from '../../components/products/ProductForm';
 import AdminNavbar from '../../components/header/AdminNav';
 import ProductTable from '../../components/products/ProductTable';
 import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast } from '../../utils/toastUtils';
 
 const ProductPage = () => {
   const [categories, setCategories] = useState([]);
@@ -16,10 +17,9 @@ const ProductPage = () => {
   const fetchCategories = async () => {
     try {
       const response = await axiosInstance.get('/admin/getCategories');
-      console.table(response.data?.categories);
       setCategories(response.data?.categories);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error fetching categories');
+      showErrorToast(error.response?.data?.message || 'Error fetching categories');
       console.error('Error fetching categories:', error);
     }
   };

@@ -213,17 +213,17 @@ const OrderTable = ({ orders, handleSaveStatus }) => {
 
                 {/* Coupon Name */}
                 <Typography fontSize="16px" >
-                  Coupon Applied: {selectedOrder.couponName || 'No Coupon'}
+                  Coupon Applied: {selectedOrder.couponApplied || 'No Coupon'}
                 </Typography>
 
                 {/* Discount Price */}
                 <Typography fontSize="16px" >
-                  Discount: ₹{selectedOrder.discountPrice || 0}
+                  Discount: ₹{selectedOrder.discountAmount || 0}
                 </Typography>
 
                 {/* Final Price */}
                 <Typography fontSize="16px" >
-                  Final Price: ₹{selectedOrder.totalPrice - (selectedOrder.discountPrice || 0)}
+                  Final Price: ₹{selectedOrder.finalPrice}
                 </Typography>
               </Box>
             </>

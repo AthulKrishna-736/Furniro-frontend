@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, LinearProgress } from '@mui/material';
+import { Box, Typography, Button, LinearProgress, Pagination } from '@mui/material';
 import { 
   LocalShipping as LocalShippingIcon, 
   CheckCircle as CheckCircleIcon, 
@@ -12,17 +12,28 @@ import {
 import axiosInstance from '../../utils/axiosInstance';
 import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 import { useNavigate } from 'react-router-dom';
+import AlertConfirm from '../customAlert/AlertConfirm';
 
 const OrderDetail = () => {
   const navigate = useNavigate()
   const [orders, setOrders] = useState([]);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [orderId, setOrderId] = useState('')
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [message, setMessage] = useState('')
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalOrders: 0,
+  });
   const userId = localStorage.getItem('userId');
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (page = 1) => {
     try {
-      const response = await axiosInstance.get(`/user/getOrder/${userId}`);
-      setOrders(response.data.orders); 
+      const response = await axiosInstance.get(`/user/getOrder/${userId}?page=${page}`);
+      const { orders, pagination } = response.data;
+      setOrders(orders); 
+      setPagination(pagination);
     } catch (error) {
       showErrorToast(error.response?.data?.message);
     }
@@ -36,12 +47,51 @@ const OrderDetail = () => {
     }
   }, [userId]);
 
+  const updateWallet = async(totalPrice, type, description, orderId)=>{
+    try {
+      const response = await axiosInstance.patch(`/user/updateWallet/${userId}`,{
+        amount: totalPrice,
+        type,
+        description,
+        orderId,
+      })
+      console.log('response of wallet promise: ', response.data)
+    } catch (error) {
+      console.log('error updating the cart: ',error.response.data?.message)
+    }
+  }
+
   const handleCancelOrder = async (orderId) => {
     try {
       const cancelledOrder = orders.find((order)=> order._id === orderId);
-      const { totalPrice } = cancelledOrder;
+      const { totalPrice, payment, status } = cancelledOrder;
+
       const response = await axiosInstance.patch('/user/cancelOrder', { orderId });
       showSuccessToast(response.data?.message);
+
+      if(payment == 'COD'){
+        console.log('cod this worked')
+        if(status == 'Delivered'){
+          console.log('matched delivered so amount crediting')
+          await updateWallet(
+            totalPrice,
+            'credit',
+            `Refund for cancelled Order ID: ${orderId}`,
+            orderId,
+          )
+          console.log('amount credited')
+        }
+        fetchOrderDetails();
+        console.log('cod is not delivered so it just cancelled here..')
+        return;
+      }
+      console.log('other payments than cod amount crediting here')
+      await updateWallet(
+        totalPrice,
+        'credit',
+        `Refund for cancelled Order ID: ${orderId}`,
+        orderId,
+      )
       fetchOrderDetails();
     } catch (error) {
       showErrorToast(error.response?.data?.message);
@@ -49,16 +99,21 @@ const OrderDetail = () => {
   };
 
   const handleReturnOrder = async(orderId) => {
+    console.log('button clicked')
     try {
       const cancelledOrder = orders.find((order)=> order._id === orderId);
       const { totalPrice } = cancelledOrder;
-
       const response = await axiosInstance.patch('/user/returnOrder', { orderId })
-      console.log('res return data: ', response.data)
-      showSuccessToast(response.data?.message)
+      showSuccessToast(response.data?.message);
+
+      await updateWallet(
+        totalPrice,
+        'credit',
+        `Refund for returned Orden ID: ${orderId}`,
+        orderId,
+      )
       fetchOrderDetails();
     } catch (error) {
-      console.error('Error returning order:', error);
       showErrorToast(error.response.data?.message);
     }
   };
@@ -66,6 +121,22 @@ const OrderDetail = () => {
   const toggleProductList = (orderId) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };  
+
+  const handleAlertClick = (orderId, action) => {
+    console.log('clicked here')
+    const messages = {
+      cancel: 'Are you sure you want to cancel this order?',
+      return: 'Are you sure you want to return this order?',
+    };
+    const alertMessage = messages[action]
+    setMessage(alertMessage)
+    setOrderId(orderId)
+    setAlertOpen(true);
+  };
+
+  const handlePageChange  = (event, value)=>{
+    fetchOrderDetails(value)
+  }
 
   const steps = [
     { label: 'Pending', icon: <ShoppingCartOutlinedIcon /> },
@@ -75,9 +146,8 @@ const OrderDetail = () => {
   ];
   
   return (
-    <Box >
+    <Box>
       <Typography variant="h4" gutterBottom>User Orders</Typography>
-
       {/* Display orders with a fixed height and scrollable area */}
       <Box
         sx={{
@@ -119,12 +189,12 @@ const OrderDetail = () => {
                 top: '10px', 
                 right: '10px', 
                 backgroundColor:
-                order.status === 'Pending' ? '#f0ad4e' : // Amber
-                order.status === 'Processing' ? '#0275d8' : // Blue
-                order.status === 'Shipped' ? '#5bc0de' : // Teal
-                order.status === 'Delivered' ? '#5cb85c' : // Green
-                order.status === 'Cancelled' ? '#d9534f' : // Red
-                order.status === 'Returned' ? '#6c757d' : // Grey
+                order.status === 'Pending' ? '#f0ad4e' : 
+                order.status === 'Processing' ? '#0275d8' : 
+                order.status === 'Shipped' ? '#5bc0de' :
+                order.status === 'Delivered' ? '#5cb85c' : 
+                order.status === 'Cancelled' ? '#d9534f' : 
+                order.status === 'Returned' ? '#6c757d' : 
                 '#6c757d', 
                 color: '#ffffff', 
                 padding: '5px 10px', 
@@ -139,6 +209,14 @@ const OrderDetail = () => {
             <Typography variant="h6">User Name: {order.userId.firstName}</Typography>
             <Typography variant="h6">Total Price: ₹{order.totalPrice}</Typography>
             <Typography variant="h6">Payment Method: {order.payment}</Typography>
+            <Typography variant="h6">Payment Status: {order.paymentStatus}</Typography>            
+            <Typography variant="h6">
+              Ordered Date: {new Date(order.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </Typography>
             <Typography variant="h6">Address: {order.selectedAddress}</Typography>
 
             {/* Progress Bar */}
@@ -326,7 +404,7 @@ const OrderDetail = () => {
             {/* Return Button */}
             {order.status !== 'Cancelled' && order.status !== 'Returned' && (
               <Button
-                onClick={() => handleReturnOrder(order._id)}
+                onClick={() => handleAlertClick(order._id, 'return')}
                 sx={{
                   marginTop: '15px',
                   backgroundColor: '#6c63ff',
@@ -356,7 +434,7 @@ const OrderDetail = () => {
             {/* Cancel Button */}
             {order.status !== 'Cancelled' && order.status !== 'Returned' && (
               <Button
-                onClick={() => handleCancelOrder(order._id)}
+                onClick={() => handleAlertClick(order._id, 'cancel')}
                 sx={{
                   position: 'absolute',
                   bottom: '20px',
@@ -387,6 +465,27 @@ const OrderDetail = () => {
           </Box>
         ))
       )}
+        <AlertConfirm 
+          open={alertOpen}
+          message={message}
+          onConfirm={()=> {
+            if(message.includes('cancel')){
+              handleCancelOrder(orderId);
+            }else if(message.includes('return')){
+              handleReturnOrder(orderId);
+            }
+            setAlertOpen(false);
+          }}
+          onCancel={() => setAlertOpen(false)}
+        />
+      </Box>
+      <Box sx={{ display:'flex', justifyContent: 'center'}}>
+        <Pagination
+        count={pagination.totalPages}
+        page={pagination.currentPage}
+        onChange={handlePageChange}
+        color='primary' 
+        />
       </Box>
     </Box>
   );

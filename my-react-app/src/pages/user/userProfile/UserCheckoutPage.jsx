@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Radio, RadioGroup, FormControlLabel, FormControl } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Box, Typography } from '@mui/material';
 import Navbar from '../../../components/header/Navabar';
 import Address from '../../../components/address/Address';
 import axiosInstance from '../../../utils/axiosInstance';
@@ -8,7 +7,6 @@ import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
 import { ToastContainer } from 'react-toastify';
 import PaymentComponent from '../../../components/payment/Payment';
 import OrderSummary from '../../../components/orders/OrderSummary';
-import { useDispatch, useSelector } from 'react-redux';
 import PaymentMethod from '../../../components/payment/PaymentMethod';
 import OrderSuccess from '../../../components/orders/orderSuccess';
 
@@ -18,14 +16,14 @@ const UserCheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [cartId, setCartId] = useState('');
-  const [tempOrderId, setTempOrderId] = useState('');
   const [orderDetails, setOrderDetails] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [razorpay, setRazorpayOpen] = useState(false);
-  const navigate = useNavigate();
+  const [coupons, setCoupons] = useState([])
+  const [discountedPrice, setDiscountedPrice] = useState(0);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
 
   const userId = localStorage.getItem('userId');
-  const walletBalance = useSelector((state)=> state.userWallet.balance);
 
   const fetchCart = async () => {
     try {
@@ -40,8 +38,19 @@ const UserCheckoutPage = () => {
       console.error('Error fetching cart items:', error.response?.data?.message);
     }
   };
+
+  const fetchCoupons = async() =>{
+    try {
+      const response = await axiosInstance.get(`/user/getCoupons`);
+      setCoupons(response.data.coupons);
+    } catch (error) {
+      consoele.log('error while getting coupons: ',error)
+    }
+  }
+
   useEffect(() => {
     fetchCart();
+    fetchCoupons()
   }, [userId]);
 
   const handleAddressChange = (addressId) => {
@@ -57,16 +66,29 @@ const UserCheckoutPage = () => {
     setOrderSuccess(false);
   }
 
-  const placeOrder = async () => {
-    try {
-      const orderData = {
-        userId,
-        cartId,
-        selectedAddress,
-        paymentMethod,
-        totalPrice,
-      };
+  const handlePlaceOrder = async () => {
+    const orderData = {
+      userId,
+      cartId,
+      selectedAddress,
+      paymentMethod,
+      totalPrice,
+      discountedPrice,
+      selectedCoupon: selectedCoupon?._id,
+    };
+    console.log('order data resutl = ',orderData)
   
+    if (paymentMethod === 'Razorpay') {
+      console.log('Payment method selected: ', paymentMethod);
+      setRazorpayOpen(true); 
+      return; 
+    }
+  
+    await proceedWithOrder(orderData);
+  };
+  
+  const proceedWithOrder = async (orderData) => {
+    try {
       const orderResponse = await axiosInstance.post('/user/placeOrder', orderData);
       setOrderDetails(orderResponse.data.order);
   
@@ -77,56 +99,10 @@ const UserCheckoutPage = () => {
       setOrderSuccess(true);
     } catch (error) {
       console.error('Error Placing Order: ', error);
-      showErrorToast(error.response?.data?.message || 'Order placement failed');
+      showErrorToast(error.response?.data?.message);
     }
   };
-
-  const handlePlaceOrder = async () => {
-    try {
-      if (!selectedAddress) {
-        showErrorToast('Please select an address');
-        return;
-      }
-      if (!paymentMethod) {
-        showErrorToast('Please select a payment method');
-        return;
-      }
   
-      if (paymentMethod === 'Wallet') {
-        if (totalPrice > walletBalance) {
-          showErrorToast('Insufficient wallet balance');
-          return;
-        }
-      }
-  
-      const tempOrderData = {
-        userId,
-        cartItems: cartItems.map((item) => ({
-          productId: item.productId._id,
-          quantity: item.quantity,
-        })),
-        selectedAddress,
-        totalPrice,
-        paymentMethod,
-      };
-  
-      const tempOrderResponse = await axiosInstance.post('/user/tempOrder', tempOrderData);
-      setTempOrderId(tempOrderResponse?.data?.tempOrder?._id)
-      console.log('ordertotalprice here properly: ',[totalPrice, tempOrderResponse?.data])
-      if (paymentMethod === 'Razorpay' && tempOrderResponse?.data?.tempOrder?._id) {
-        console.log('total price before placing order: ', totalPrice)
-        setRazorpayOpen(true);
-        return; 
-      }
-
-      await placeOrder()
-    } catch (error) {
-      console.error('Error placing order:', error);
-      showErrorToast(error.response?.data?.message || 'Order placement failed');
-    }
-  };
-
-
   return (
     <Box>
       {/* Navbar */}
@@ -279,22 +255,40 @@ const UserCheckoutPage = () => {
           {/* Payment */}
           <PaymentMethod
            paymentMethod={paymentMethod}
-           walletBalance={walletBalance}
            handlePaymentChange={handlePaymentChange}          
           />
         </Box>
 
         {/* Right side - OrderSummary */}
-        <OrderSummary totalPrice={totalPrice} handlePlaceOrder={handlePlaceOrder} />
+        <OrderSummary 
+        totalPrice={totalPrice} 
+        handlePlaceOrder={handlePlaceOrder} 
+        coupons={coupons} 
+        selectedCoupon={selectedCoupon} 
+        setSelectedCoupon={setSelectedCoupon}
+        discountedPrice={discountedPrice}
+        setDiscountedPrice={setDiscountedPrice}
+        />
       </Box>
 
       {/* Razorpay payment modal */}
       {razorpay && (
         <PaymentComponent
-          orderId={tempOrderId}
-          amount={totalPrice}
+          userId={userId}
+          amount={discountedPrice == 0 ? totalPrice : discountedPrice}
           setRazorpayOpen={setRazorpayOpen}
-          placeOrder={placeOrder}
+          onPaymentSuccess={async () =>{
+          const orderData = {
+          userId,
+          cartId,
+          selectedAddress,
+          paymentMethod,
+          totalPrice: discountedPrice == 0 ? totalPrice : discountedPrice,
+          selectedCoupon: selectedCoupon?._id,
+          };
+          console.log('order data in razor: ', orderData)
+          await proceedWithOrder(orderData);
+          }}
         />
       )}
 

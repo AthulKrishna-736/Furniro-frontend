@@ -30,6 +30,9 @@ import UserWishlistPage from './pages/user/userProfile/UserWishlistPage'
 import UserWalletPage from './pages/user/userProfile/UserWalletPage'
 import AdminCoupon from './pages/admin/AdminCoupon'
 import CatOfferPage from './pages/admin/CatOfferPage'
+import ScrollToTop from './utils/ScrollControl'
+import SalesReportPage from './pages/admin/SalesReportPage'
+import ProtectAdmin from './pages/protectRoutes/ProtectAdmin'
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
@@ -38,6 +41,7 @@ const App = () => {
     <GoogleOAuthProvider clientId={googleClientId}>
     <Provider store={store}>
     <Router>
+      <ScrollToTop />
       <Routes>
 
       <Route path='/' element={<LandingPage/>} />
@@ -109,36 +113,58 @@ const App = () => {
         } />
 
         <Route path='/admin-dashboard' element={
-          <AdminDash/>
+          <ProtectAdmin>
+            <AdminDash/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-products' element={
-          <ProductPage/>
+          <ProtectAdmin>
+            <ProductPage/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-categories' element={
-          <CategoryPage/>
+          <ProtectAdmin>
+            <CategoryPage/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-users' element={
-          <UserListPage/>
+          <ProtectAdmin>
+            <UserListPage/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-banners' element={
-          <AdminBanner/>
+          <ProtectAdmin>
+            <AdminBanner/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-orders' element={
-          <OrdersPage/>
+          <ProtectAdmin>
+            <OrdersPage/>
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-coupons' element={
-          <AdminCoupon />
+          <ProtectAdmin>
+            <AdminCoupon />
+          </ProtectAdmin>
         } />
 
         <Route path='/admin-offers' element={
-          <CatOfferPage />
-        } />        
+          <ProtectAdmin>
+            <CatOfferPage />
+          </ProtectAdmin>
+        } />       
+
+        <Route path='/admin-sales-report' element={
+          <ProtectAdmin>
+            <SalesReportPage />
+          </ProtectAdmin>
+        } />      
 
       </Routes>
     </Router>

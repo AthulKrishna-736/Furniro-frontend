@@ -19,17 +19,8 @@ const ConfirmationAlert = ({
     transition: 'all 0.3s ease',
     backgroundImage: 'linear-gradient(45deg, #ff6b6b, #f06595)',
     color: '#fff',
-    boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.2)',
-    '&:hover': {
-      transform: 'scale(1.05)',
-      boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.3)',
-      backgroundImage: 'linear-gradient(45deg, #f06595, #d6336c)',
-    },
     '&.noButton': {
       backgroundImage: 'linear-gradient(45deg, #339af0, #228be6)',
-      '&:hover': {
-        backgroundImage: 'linear-gradient(45deg, #228be6, #1c7ed6)',
-      },
     },
   }));
 
@@ -41,7 +32,7 @@ const ConfirmationAlert = ({
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '90%', sm: 400 }, // Responsive width
+          width: { xs: '90%', sm: 400 }, 
           bgcolor: 'background.paper',
           borderRadius: 3,
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',

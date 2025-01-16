@@ -1,10 +1,27 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Typography, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import PaymentIcon from '@mui/icons-material/Payment';
+import axiosInstance from '../../utils/axiosInstance';
 
-const PaymentMethod = ({ paymentMethod, walletBalance, handlePaymentChange }) => {
+const PaymentMethod = ({ paymentMethod, handlePaymentChange }) => {
+    const [wallet, setWallet] = useState({
+        balance: 0,
+        transaction: [],
+    });
+    useEffect(()=>{
+        const fetchWallet = async () => {
+            try {
+              const userId = localStorage.getItem('userId');
+              const response = await axiosInstance.get(`/user/getWallet/${userId}`);
+              setWallet(response.data.wallet);
+            } catch (error) {
+                console.log('error in wallet: ',error)
+            }
+          };
+          fetchWallet()
+    },[])
   return (
     <Box 
     sx={{ 
@@ -96,7 +113,7 @@ const PaymentMethod = ({ paymentMethod, walletBalance, handlePaymentChange }) =>
             <FormControlLabel
             value="Wallet"
             control={<Radio />}
-            label={`Wallet (₹${walletBalance})`}
+            label={`Wallet (₹${wallet.balance})`}
             sx={{ flex: 1 }}
             />
             <AccountBalanceWalletIcon sx={{ marginLeft: 'auto', color: '#ff9800' }} />

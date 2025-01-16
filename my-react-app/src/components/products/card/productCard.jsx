@@ -14,12 +14,9 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
     event.stopPropagation(); 
     try {
       const response = await axiosInstance.post('/user/cart', { userId, productId: product._id, quantity: 1 });
-
-      console.log('res cart: ', response?.data)
-      showSuccessToast('Product added to cart!');
+      showSuccessToast(response.data?.message);
     } catch (error) {
       showErrorToast(error.response.data.message);
-      console.error('Error adding to cart:', error);
     }
   };
 
@@ -27,10 +24,8 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
     event.stopPropagation();
     try {
       const response = await axiosInstance.post('/user/addWishlist', { userId, productId: product._id });
-      console.log('res wishling: ', response.data);
       showSuccessToast('Added to wishlist')
     } catch (error) {
-      console.log('error while adding wishlist: ', error);
       showErrorToast(error.response.data.message);
     }
   };
@@ -44,7 +39,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
   return (
     <Card
       sx={{
-        maxWidth: 345,
+        maxWidth: 315,
         border: '1px solid #ddd',
         borderRadius: 4,
         overflow: 'hidden',
@@ -63,17 +58,18 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
       <Box
         sx={{
           borderBottom: '1px solid #ddd',
+          height: 195, 
+          overflow: 'hidden',
         }}
       >
         <CardMedia
           component="img"
           alt={product.name || 'Product'} 
-          height="200"
-          image={product.images?.[0] || '/path/to/default-image.jpg'}  
+          image={product.images?.[0] || '/path/to/default-image.jpg'}
           sx={{
-            objectFit: 'contain',
-            padding: 2,
-            backgroundColor: '#f9f9f9',
+            objectFit: 'cover',
+            width: '100%', 
+            height: '100%',
           }}
         />
       </Box>
