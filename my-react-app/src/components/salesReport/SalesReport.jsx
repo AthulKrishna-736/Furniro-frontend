@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import axiosInstance from '../../utils/axiosInstance';
 import { DeleteOutlineOutlined } from '@mui/icons-material';
+import * as XLSX from 'xlsx';
 
 const SalesReport = () => {
   const [salesData, setSalesData] = useState(null);
@@ -31,7 +32,7 @@ const SalesReport = () => {
   const fetchSalesReport = async () => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.get('/admin/getSalesReport', {
+      const response = await axiosInstance.get('/admin/getSalesReport', {
         params: {
           filter,
           page,
@@ -39,8 +40,14 @@ const SalesReport = () => {
           ...(endDate && { endDate }),
         },
       });
-      console.log('Date range sales data:', data);
-      setSalesData(data);
+      
+      if (response && response.data) {
+        const { data } = response; 
+        console.log('Date range sales data:', data);
+        setSalesData(data);
+      } else {
+        console.error('No data received in the response');
+      }
     } catch (error) {
       console.error('Error fetching sales report:', error);
     } finally {
@@ -53,39 +60,100 @@ const SalesReport = () => {
   }, [filter, page, startDate, endDate]);
 
   const handlePdfDownload = async () => {
-    try {
-      const salesStatistics = salesData.statistics; 
+    console.log('PDF button clicked and downloading...');
+    console.log('Sales data here:', salesData.allOrdersData);
+    console.log('Sales statistics:', salesData.statistics);
   
-      // Making a GET request to fetch the PDF
-      const response = await axiosInstance.get('/admin/downloadPdf', {
-        responseType: 'arraybuffer', // Use arraybuffer instead of blob
-        params: {
-          totalSales: salesStatistics.totalSales,
-          totalOrders: salesStatistics.totalOrders,
-        },
-      });
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ format: [400, 310] });
   
-      // Log the response to ensure it’s received correctly
-      console.log('PDF response:', response.data);
+    doc.setFontSize(30);
+    doc.text("Sales Report", 14, 20);
   
-      // Convert the arraybuffer to a Blob (since Blob works better for creating URLs)
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+    doc.setFontSize(16);
+    doc.text("Generated on: " + new Date().toLocaleDateString(), 14, 30);
   
-      // Create a downloadable URL for the Blob
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob); // Create an object URL for the blob
-      link.download = 'sales_report.pdf'; // Set the name of the downloaded file
-      link.click(); // Trigger the download
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-    }
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Total Sales: Rs ${salesData.statistics.totalSales}`, 14, 40);
+    doc.text(`Total Discount: Rs ${salesData.statistics.totalDiscount}`, 14, 50);
+  
+    const headers = ['Order ID', 'Customer Name', 'Order Date', 'Products', 'Total Price'];
+    
+    const columnWidths = [60, 50, 30, 80, 60]; 
+    const yStart = 60; 
+  
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    let xPos = 14;
+    headers.forEach((header, index) => {
+      doc.text(header, xPos, yStart);
+      xPos += columnWidths[index]; 
+    });
+  
+    doc.setFont("helvetica", "normal");
+    const salesDataRows = salesData.allOrdersData;
+  
+    const rowHeight = 10; 
+    let currentY = yStart + rowHeight; 
+  
+    salesDataRows.forEach((order) => {
+      let xPos = 14;
+  
+      const productsString = order.products
+        .map((product) => `${product.name} (Qty: ${product.quantity})`)
+        .join(", ");
+  
+      doc.text(order.orderId, xPos, currentY);
+      xPos += columnWidths[0];
+      doc.text(order.customerName, xPos, currentY); 
+      xPos += columnWidths[1];
+      doc.text(order.orderDate, xPos, currentY); 
+      xPos += columnWidths[2];
+      doc.text(productsString, xPos, currentY); 
+      xPos += columnWidths[3];
+      doc.text(order.totalPrice, xPos, currentY); 
+  
+      currentY += rowHeight;
+    });
+  
+    doc.save("sales_report.pdf");
   };
   
-  
-
   const handleExcelDownload = async ()=>{
-    console.log('excel downloaded')
-  }
+    console.log('Excel download initiated');
+
+    const data = salesData.allOrdersData.map((order) => {
+      return {
+        'Order ID': order.orderId,
+        'Customer Name': order.customerName,
+        'Order Date': order.orderDate,
+        'Products': order.products
+          .map((product) => `${product.name} (Qty: ${product.quantity})`)
+          .join(", "),
+        'Total Price': order.totalPrice,
+      };
+    });
+  
+    const statistics = {
+      'Total Sales': salesData.statistics.totalSales,
+      'Total Discount': salesData.statistics.totalDiscount,
+      'Total Orders': salesData.statistics.totalOrders,
+      'Generated Date': new Date().toLocaleDateString(),
+    };
+  
+    const wsOrders = XLSX.utils.json_to_sheet(data);
+  
+    const wsStats = XLSX.utils.json_to_sheet([statistics]);
+  
+    const wb = XLSX.utils.book_new();
+  
+    XLSX.utils.book_append_sheet(wb, wsStats, "Sales Report - Statistics");
+  
+    XLSX.utils.book_append_sheet(wb, wsOrders, "Sales Report - Orders");
+  
+    XLSX.writeFile(wb, 'sales_report.xlsx');
+  };
 
   const StatisticsCard = ({ title, value }) => (
     <Grid item xs={12} sm={4}>

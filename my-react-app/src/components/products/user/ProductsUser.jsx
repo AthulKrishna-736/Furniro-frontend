@@ -33,9 +33,33 @@ const ProductsUser = () => {
         categoryId : selectedCategoryId,
       };
 
-      const response = await axiosInstance.get('/user/products', { params });
-      const { products: fetchedProducts, totalPages } = response.data;
-      setProducts(fetchedProducts);
+      const [productResponse, offersResponse] = await Promise.all([
+        axiosInstance.get('/user/products', { params }),
+        axiosInstance.get('/admin/catoffers'), 
+      ]);
+  
+      // Extract data from the responses
+      const { products: fetchedProducts, totalPages } = productResponse.data;
+      const offers = offersResponse.data.products;
+      console.log(productResponse.data)
+      console.log(offers);
+
+      const productsWithOffers = fetchedProducts.map((product) => {
+        const offer = offers.find((offerItem) => offerItem._id === product._id);
+  
+        if (offer) {
+          return {
+            ...product,
+            discountPrice: offer.discountPrice,
+            discountValue: offer.discountValue,
+            discountType: offer.discountType,
+          };
+        }
+  
+        return product;
+      });
+
+      setProducts(productsWithOffers);
       setTotalPages(totalPages);
     } catch (err) {
       console.error('Error fetching products:', err);

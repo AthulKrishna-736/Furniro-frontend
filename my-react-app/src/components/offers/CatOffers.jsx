@@ -1,72 +1,98 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Modal, TextField, MenuItem, Select, InputLabel, FormControl, Box, Typography, Paper } from '@mui/material';
-import { toast } from 'react-toastify';
+import {
+  Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Modal, TextField, MenuItem, Select, InputLabel, FormControl, Box, Typography,
+  Paper, IconButton,
+} from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
+import AlertConfirm from '../customAlert/AlertConfirm';
 
 const CatOffers = () => {
   const [categories, setCategories] = useState([]);
   const [offers, setOffers] = useState([]);
   const [open, setOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
   const [formData, setFormData] = useState({
     categoryId: '',
     discountType: 'percentage',
     discountValue: '',
     startDate: '',
-    expiryDate: ''
+    expiryDate: '',
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoryResponse, offerResponse] = await Promise.all([
-          axiosInstance.get('/admin/getCat'),
-          axiosInstance.get('/admin/getCatOffers')
-        ]);
-        console.log('offerres :', offerResponse.data)
-        setCategories(categoryResponse.data.categories || []);
-        setOffers(offerResponse.data.offers || []);
-      } catch {
-        toast.error('Error fetching data.');
-      }
-    };
-    fetchData();
-  }, []);
-
-  const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const handleCreateOffer = async () => {
-    const { categoryId, discountType, discountValue, startDate, expiryDate } = formData;
-    if (!categoryId || !discountType || !discountValue || !startDate || !expiryDate) {
-      return toast.error('All fields are required!');
-    }
-
+  const fetchData = async () => {
     try {
-      const response = await axiosInstance.post('/admin/createOffer', formData);
-      console.log('res created offer: ',response.data)
-      toast.success('Offer created successfully!');
-      setOpen(false);
-      const { data } = await axiosInstance.get('/admin/getCatOffers');
-      setOffers(data.offers);
-    } catch {
-      toast.error('Error creating offer');
+      const [categoryResponse, offerResponse] = await Promise.all([
+        axiosInstance.get('/admin/getCat'),
+        axiosInstance.get('/admin/getCatOffers'),
+      ]);
+      console.log('offers res = ', offerResponse.data.offers)
+      setCategories(categoryResponse.data.categories || []);
+      setOffers(offerResponse.data.offers || []);
+    } catch (error) {
+      showErrorToast('Error fetching data.');
     }
   };
 
-  const handleBlockOffer = async (offerId) => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleInputChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleCreateOffer = async () => {
+    const { categoryId, discountType, discountValue, startDate, expiryDate } = formData;
+
+    if (!categoryId || !discountType || !discountValue || !startDate || !expiryDate) {
+      return showErrorToast('All fields are required!');
+    }
+
     try {
-      console.log('offer id:', offerId);
-      const response = await axiosInstance.patch(`/admin/blockCatOffer/${offerId}`, { isActive: false });
-      console.log('respons of block:', response.data)
-      toast.success('Offer blocked successfully!');
-      const { data } = await axiosInstance.get('/admin/getCatOffers');
-      setOffers(data.offers);
-    } catch {
-      toast.error('Error blocking offer');
+      await axiosInstance.post('/admin/createOffer', formData);
+      showSuccessToast('Offer created successfully!');
+      setOpen(false);
+      fetchData();
+    } catch (error) {
+      showErrorToast(error.response.data.message);
+    }
+  };
+
+  const handleDeleteOffer = async () => {
+    try {
+      if (selectedOffer) {
+        const response = await axiosInstance.delete(`/admin/deleteCatOffer/${selectedOffer}`);
+        showSuccessToast(response.data.message);
+        setAlertOpen(false);
+        fetchData();
+      }
+    } catch (error) {
+      setAlertOpen(false);
+      showErrorToast('Error deleting offer.');
+    }
+  };
+
+  const handleBlockOffer = async () => {
+    try {
+      if (selectedOffer) {
+        const response = await axiosInstance.patch(`/admin/blockCatOffer/${selectedOffer}`);
+        console.log('block check ', response.data)
+        showSuccessToast(response.data.message);
+        setBlockOpen(false);
+        fetchData();
+      }
+    } catch (error) {
+      showErrorToast('Error blocking/unblocking offer.');
+      setAlertOpen(false)
     }
   };
 
   return (
-    <Box p={3} bgcolor="#f5f5f5" minHeight="100vh">
+    <Box p={3} bgcolor="#f9f9f9" minHeight="100vh">
       <Paper elevation={3} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           Category Offers
@@ -77,38 +103,53 @@ const CatOffers = () => {
       </Paper>
 
       <TableContainer component={Paper} elevation={3}>
-        <Table>
-          <TableHead>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead sx={{ backgroundColor: '#1976d2' }}>
             <TableRow>
-              <TableCell>Category</TableCell>
-              <TableCell align="right">Discount Type</TableCell>
-              <TableCell align="right">Discount Value</TableCell>
-              <TableCell align="right">Start Date</TableCell>
-              <TableCell align="right">Expiry Date</TableCell>
-              <TableCell align="right">Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              {['Category', 'Discount Type', 'Discount Value', 'Start Date', 'Expiry Date', 'Status', 'Actions'].map((header) => (
+                <TableCell key={header} sx={{ color: 'white', fontWeight: 'bold' }} align="center">
+                  {header}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {offers.length ? (
-              offers.map((offer) => (
-              <TableRow key={offer._id}>
-                <TableCell>{offer.categoryName || 'N/A'}</TableCell>
-                <TableCell align="right">{offer.discountType}</TableCell>
-                <TableCell align="right">{offer.discountValue}{offer.discountType === 'percentage' ? '%' : ''}</TableCell>
-                <TableCell align="right">{new Date(offer.startDate).toLocaleDateString()}</TableCell>
-                <TableCell align="right">{new Date(offer.expiryDate).toLocaleDateString()}</TableCell>
-                <TableCell align="right">{offer.isActive ? 'Active' : 'Inactive'}</TableCell>
-                <TableCell align="right">
-                  <Button variant="outlined" color="error" onClick={() => handleBlockOffer(offer._id)}>
-                    {offer.isActive ? 'Block' : 'Unblock'}
-                  </Button>
-                </TableCell>
-              </TableRow>
+              offers.map(({ categoryName, discountType, discountValue, startDate, expiryDate, isActive, offerId }) => (
+                <TableRow key={offerId} sx={{ '&:hover': { backgroundColor: '#e0f7fa' } }}>
+                  <TableCell align="center">{categoryName || 'N/A'}</TableCell>
+                  <TableCell align="center">{discountType}</TableCell>
+                  <TableCell align="center">{`${discountValue}${discountType === 'percentage' ? '%' : ''}`}</TableCell>
+                  <TableCell align="center">{new Date(startDate).toLocaleDateString()}</TableCell>
+                  <TableCell align="center">{new Date(expiryDate).toLocaleDateString()}</TableCell>
+                  <TableCell align="center">{isActive ? 'Active' : 'Inactive'}</TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="outlined"
+                      color={isActive ? 'error' : 'success'}
+                      onClick={() => {
+                        setSelectedOffer(offerId);
+                        setBlockOpen(true);
+                      }}
+                    >
+                      {isActive ? 'Block' : 'Unblock'}
+                    </Button>
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        setSelectedOffer(offerId);
+                        setAlertOpen(true);
+                      }}
+                      sx={{ ml: 1 }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   No offers available
                 </TableCell>
               </TableRow>
@@ -128,67 +169,56 @@ const CatOffers = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
-            width: '400px',
+            width: { xs: '90%', sm: '400px' },
           }}
         >
-          <Typography variant="h5" mb={2}>
-            Create New Offer
-          </Typography>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Category</InputLabel>
-            <Select name="categoryId" value={formData.categoryId} onChange={handleInputChange}>
-              {categories.length ? (
-                categories.map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
-                    {category.name}
-                  </MenuItem>
-                ))
+          <Typography variant="h5" mb={2}>Create New Offer</Typography>
+          {[{ label: 'Category', name: 'categoryId', type: 'select', options: categories },
+            { label: 'Discount Type', name: 'discountType', type: 'select', options: [{ id: 'percentage', name: 'Percentage' }, { id: 'flat', name: 'Flat' }] },
+            { label: 'Discount Value', name: 'discountValue', type: 'number' },
+            { label: 'Start Date', name: 'startDate', type: 'date' },
+            { label: 'Expiry Date', name: 'expiryDate', type: 'date' }].map(({ label, name, type, options }) => (
+              type === 'select' ? (
+                <FormControl fullWidth margin="normal" key={name}>
+                  <InputLabel>{label}</InputLabel>
+                  <Select name={name} value={formData[name]} onChange={handleInputChange}>
+                    {options.map(({ id, name }) => (
+                      <MenuItem key={id} value={id}>{name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               ) : (
-                <MenuItem value="">No categories</MenuItem>
-              )}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Discount Type</InputLabel>
-            <Select name="discountType" value={formData.discountType} onChange={handleInputChange}>
-              <MenuItem value="percentage">Percentage</MenuItem>
-              <MenuItem value="flat">Flat</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="Discount Value"
-            type="number"
-            name="discountValue"
-            fullWidth
-            margin="normal"
-            value={formData.discountValue}
-            onChange={handleInputChange}
-          />
-          <TextField
-            label="Start Date"
-            type="date"
-            name="startDate"
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-            value={formData.startDate}
-            onChange={handleInputChange}
-          />
-          <TextField
-            label="Expiry Date"
-            type="date"
-            name="expiryDate"
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-            value={formData.expiryDate}
-            onChange={handleInputChange}
-          />
+                <TextField
+                  key={name}
+                  label={label}
+                  type={type}
+                  name={name}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData[name]}
+                  onChange={handleInputChange}
+                />
+              )
+            ))}
           <Button fullWidth variant="contained" color="primary" onClick={handleCreateOffer}>
             Create Offer
           </Button>
         </Box>
       </Modal>
+
+      <AlertConfirm
+        open={blockOpen}
+        message="Are you sure you want to block/unblock this offer?"
+        onConfirm={handleBlockOffer}
+        onCancel={() => setBlockOpen(false)}
+      />
+      <AlertConfirm
+        open={alertOpen}
+        message="Are you sure you want to delete this offer?"
+        onConfirm={handleDeleteOffer}
+        onCancel={() => setAlertOpen(false)}
+      />
     </Box>
   );
 };

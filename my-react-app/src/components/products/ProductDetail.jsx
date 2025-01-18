@@ -168,15 +168,8 @@ const ProductDetail = () => {
             {product.name}
           </Typography>
 
-          <Typography variant="h6" sx={{ color: 'green', marginBottom: '10px' }}>
+          <Typography variant="h4" sx={{ color: 'green', marginBottom: '10px' }}>
             ₹{product.salesPrice}
-          </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{ textDecoration: 'line-through', color: 'gray', marginBottom: '10px' }}
-          >
-            ₹{product.originalPrice || 100000}
           </Typography>
 
           <Typography
@@ -187,25 +180,6 @@ const ProductDetail = () => {
           </Typography>
 
           <Typography sx={{ marginBottom: '20px' }}>{product.description}</Typography>
-          
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              marginBottom: "20px",
-            }}
-          >
-            {/* Render stars dynamically */}
-            {Array.from({ length: Math.round(product.reviews || 5) }).map((_, index) => (
-              <StarIcon key={index} sx={{ color: "gold", fontSize: 20 }} />
-            ))}
-
-            {/* Display review count */}
-            <Typography variant="body1" sx={{ display: "flex", alignItems: "center" }}>
-              {product.reviews || 5}
-            </Typography>
-          </Box>
 
           {/* Buttons */}
           <Box sx={{ display: 'flex', gap: '10px' }}>

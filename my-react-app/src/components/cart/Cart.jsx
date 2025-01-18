@@ -10,6 +10,7 @@ const Cart = () => {
   const location = useLocation();
 
   const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
   const [loadingState, setLoadingState] = useState({});
 
   const userId = localStorage.getItem('userId');
@@ -18,6 +19,7 @@ const Cart = () => {
     try {
         const response = await axiosInstance.get(`/user/getCart/${userId}`);
         setCartItems(response?.data?.cart?.items || []);
+        setCartTotal(response.data.cart?.totalPrice);
         console.log('cart res : ', response.data)
     } catch (error) {
         console.error('error fetching cart items: ', error);
@@ -259,7 +261,7 @@ const Cart = () => {
 
           <Box sx={{ marginTop: 'auto' }}>
             <Typography variant="h6">
-              Total Price: ₹{calculateTotal().toFixed(2)}
+              Total Price: ₹{cartTotal}
             </Typography>
             <Button
               onClick={handleCheckout}

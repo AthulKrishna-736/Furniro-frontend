@@ -1,17 +1,16 @@
 import React from 'react';
 import { Card, CardMedia, CardContent, Typography, IconButton, Box, Tooltip } from '@mui/material';
-import { AddShoppingCart, Favorite, FavoriteBorderRounded } from '@mui/icons-material';
+import { AddShoppingCart, Favorite } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import { showErrorToast, showSuccessToast } from '../../../utils/toastUtils';
 
-
-const ProductCard = ({ product = {}, variant = "default" }) => {  // Default product as an empty object
+const ProductCard = ({ product = {}, variant = "default" }) => {
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
 
   const handleAddToCart = async (event) => {
-    event.stopPropagation(); 
+    event.stopPropagation();
     try {
       const response = await axiosInstance.post('/user/cart', { userId, productId: product._id, quantity: 1 });
       showSuccessToast(response.data?.message);
@@ -24,13 +23,14 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
     event.stopPropagation();
     try {
       const response = await axiosInstance.post('/user/addWishlist', { userId, productId: product._id });
-      showSuccessToast('Added to wishlist')
+      showSuccessToast('Added to wishlist');
     } catch (error) {
       showErrorToast(error.response.data.message);
     }
   };
 
   const handleCardClick = () => {
+    console.log('Product here:', product);
     if (product._id) {
       navigate(`/product-detail/${product._id}`);
     }
@@ -47,7 +47,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         '&:hover': variant === "trending" ? {
           transform: 'scale(1.05)',
-          boxShadow: '0 0 8px rgba(0, 123, 255, 0.5)', 
+          boxShadow: '0 0 8px rgba(0, 123, 255, 0.5)',
         } : {
           boxShadow: 6,
         },
@@ -58,17 +58,17 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
       <Box
         sx={{
           borderBottom: '1px solid #ddd',
-          height: 195, 
+          height: 195,
           overflow: 'hidden',
         }}
       >
         <CardMedia
           component="img"
-          alt={product.name || 'Product'} 
+          alt={product.name || 'Product'}
           image={product.images?.[0] || '/path/to/default-image.jpg'}
           sx={{
             objectFit: 'cover',
-            width: '100%', 
+            width: '100%',
             height: '100%',
           }}
         />
@@ -79,6 +79,8 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
         sx={{
           padding: 2,
           borderBottom: '1px solid #ddd',
+          height: 120,
+          overflow: 'hidden',
         }}
       >
         {/* Product Name */}
@@ -91,7 +93,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
             marginBottom: 1,
           }}
         >
-          {product.name || 'No Name Available'} 
+          {product.name || 'No Name Available'}
         </Typography>
 
         {/* Product Description */}
@@ -119,15 +121,42 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
         }}
       >
         {/* Price */}
-        <Typography
-          variant="h6"
-          color="primary"
-          sx={{
-            fontWeight: 'bold',
-          }}
-        >
-          ₹{product.salesPrice} 
-        </Typography>
+        <Box>
+          {product.discountPrice ? (
+            <Typography
+              variant="h6"
+              color="primary"
+              sx={{
+                fontWeight: 'bold',
+                display: 'inline',
+              }}
+            >
+              ₹{product.discountPrice}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  display: 'inline',
+                  textDecoration: 'line-through',
+                  marginLeft: 1,
+                }}
+              >
+                ₹{product.salesPrice}
+              </Typography>
+            </Typography>
+          ) : (
+            // Original Price for non-discounted products
+            <Typography
+              variant="h6"
+              color="primary"
+              sx={{
+                fontWeight: 'bold',
+              }}
+            >
+              ₹{product.salesPrice}
+            </Typography>
+          )}
+        </Box>
 
         {/* Action Buttons */}
         <Box>
@@ -143,6 +172,7 @@ const ProductCard = ({ product = {}, variant = "default" }) => {  // Default pro
           </Tooltip>
         </Box>
       </Box>
+
     </Card>
   );
 };
