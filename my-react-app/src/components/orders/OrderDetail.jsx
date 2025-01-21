@@ -7,7 +7,8 @@ import {
   Cancel as CancelIcon, 
   ExpandMore as ExpandMoreIcon, 
   Replay as ReplayIcon,
-  HourglassEmpty, 
+  HourglassEmpty,
+  Download, 
 } from '@mui/icons-material';
 import axiosInstance from '../../utils/axiosInstance';
 import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
@@ -138,6 +139,116 @@ const OrderDetail = () => {
     fetchOrderDetails(value)
   }
 
+  const handleInvoiceDownload = async (orderId) => {
+    try {
+      const { jsPDF } = await import('jspdf');
+      const order = orders.find((order) => order._id === orderId);
+  
+      if (!order) {
+        console.error("Order not found!");
+        return;
+      }
+  
+      const doc = new jsPDF();
+  
+      // Header: Company Name
+      doc.setFontSize(24);
+      doc.setTextColor("#333");
+      doc.text("Furniro", 14, 20); // Company name
+      doc.setFontSize(12);
+      doc.text(`Invoice Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.setLineWidth(0.5);
+      doc.line(14, 32, 200, 32); // Divider
+  
+      // Order Details Section
+      doc.setFontSize(16);
+      doc.text("Order Details", 14, 50);
+  
+      doc.setFontSize(12);
+      doc.text(`Order ID: ${order._id}`, 14, 60);
+      doc.text(`Order Date: ${new Date(order.createdAt).toLocaleDateString()}`, 14, 70);
+      doc.text(`Customer Name: ${order.userId.firstName}`, 14, 80);
+      doc.text(`Delivery Address: ${order.selectedAddress}`, 14, 90);
+      doc.text(`Payment Method: ${order.payment}`, 14, 100);
+      doc.text(`Payment Status: ${order.paymentStatus}`, 14, 110);
+      doc.text(`Order Status: ${order.status}`, 14, 120);
+  
+      // Items Table
+      doc.setFontSize(16);
+      doc.text("Ordered Items", 14, 140);
+  
+      const headers = ["Product Name", "Quantity", "Unit Price", "Total Price"];
+      const columnWidths = [70, 30, 40, 40]; // Adjust column widths as needed
+      let currentY = 150;
+  
+      // Table Header
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      let xPos = 14;
+      headers.forEach((header, index) => {
+        doc.text(header, xPos, currentY);
+        xPos += columnWidths[index];
+      });
+  
+      // Table Rows
+      doc.setFont("helvetica", "normal");
+      currentY += 10; // Move down for rows
+  
+      order.orderedItems.forEach((item) => {
+        const product = item.productId;
+        const productName = product.name || "Unknown Product";
+        const quantity = item.quantity;
+        const unitPrice = `Rs ${product.salesPrice}`;
+        const totalPrice = `Rs ${product.salesPrice * quantity}`;
+  
+        let xPos = 14;
+        doc.text(productName, xPos, currentY);
+        xPos += columnWidths[0];
+        doc.text(`${quantity}`, xPos, currentY);
+        xPos += columnWidths[1];
+        doc.text(unitPrice, xPos, currentY);
+        xPos += columnWidths[2];
+        doc.text(totalPrice, xPos, currentY);
+  
+        currentY += 10; // Move to the next row
+      });
+  
+      // Total Price
+      doc.setFontSize(16);
+      doc.text(`Total Price: Rs ${order.totalPrice}`, 14, currentY + 10);
+  
+      // Thank You Message and Support Email
+      currentY += 30; // Add spacing
+      doc.setFontSize(14);
+      doc.text("Thank you for shopping with us!", 14, currentY);
+      currentY += 10;
+      doc.setFontSize(12);
+      doc.text("For any queries, contact us at: furniro@gmail.com", 14, currentY);
+  
+      // Divider Line
+      currentY += 20;
+      doc.setLineWidth(0.5);
+      doc.line(14, currentY, 200, currentY);
+  
+      // Digital Signature
+      currentY += 10;
+      doc.setFontSize(14);
+      doc.text("Furniro", 14, currentY);
+      currentY += 8;
+      doc.text("CEO: Athul Krishna K S", 14, currentY);
+      currentY += 20;
+      doc.text("________________________", 14, currentY); // Signature line
+      currentY += 8;
+      doc.text("Athul Krishna K S", 14, currentY); // Signature name
+  
+      // Save PDF
+      doc.save(`invoice_${orderId}.pdf`);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+    }
+  };  
+  
+  
   const steps = [
     { label: 'Pending', icon: <ShoppingCartOutlinedIcon /> },
     { label: 'Processing', icon: <HourglassEmpty /> },
@@ -460,6 +571,37 @@ const OrderDetail = () => {
               >
                 <CancelIcon style={{ fontSize: '20px' }} />
                 Cancel
+              </Button>
+            )}
+
+            {/* Invoice Button */}
+            {order.status === 'Delivered' && (
+              <Button
+                onClick={() => handleInvoiceDownload(order._id)}
+                sx={{
+                  position: 'absolute',
+                  bottom: '1%', 
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: '#3b82f6', 
+                  color: '#fff', 
+                  padding: '6px 12px', 
+                  borderRadius: '4px', 
+                  fontSize: '13px', 
+                  fontWeight: 500, 
+                  cursor: 'pointer', 
+                  transition: 'background-color 0.2s ease', 
+                  '&:hover': {
+                    backgroundColor: '#2563eb', 
+                  },
+                  '&:active': {
+                    backgroundColor: '#1d4ed8', 
+                  },
+                }}
+                
+              >
+                <Download />
+                Download Invoice
               </Button>
             )}
           </Box>

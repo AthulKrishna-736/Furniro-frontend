@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import React from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 
-const OrderSummary = ({ selectedCoupon, setSelectedCoupon, totalPrice, handlePlaceOrder, coupons, setDiscountedPrice, discountedPrice }) => {
+const OrderSummary = ({
+  cartItems,
+  selectedCoupon,
+  setSelectedCoupon,
+  totalPrice,
+  handlePlaceOrder,
+  coupons,
+  setDiscountedPrice,
+  discountedPrice,
+}) => {
+  // Filter applicable coupons based on total price
+  const applicableCoupons = coupons.filter((coupon) => totalPrice >= coupon.minPrice);
 
-  // Filter coupons based on total price
-  const applicableCoupons = coupons.filter(coupon => totalPrice >= coupon.minPrice);
-
-  // Calculate the final price after applying the selected coupon
-
-
+  // Handle coupon selection
   const handleCouponSelect = (event) => {
-    const couponId = event.target.value;
-    const coupon = applicableCoupons.find(c => c._id === couponId);
+    const coupon = applicableCoupons.find((c) => c._id === event.target.value);
     setSelectedCoupon(coupon || null);
 
     const newDiscountedPrice = coupon
-      ? coupon.discountType === 'FLAT'
+      ? coupon.discountType === "FLAT"
         ? Math.max(0, totalPrice - coupon.discountValue)
         : Math.max(0, totalPrice * (1 - coupon.discountValue / 100))
       : totalPrice;
@@ -23,64 +36,71 @@ const OrderSummary = ({ selectedCoupon, setSelectedCoupon, totalPrice, handlePla
     setDiscountedPrice(newDiscountedPrice);
   };
 
+  // Final price after applying discount
+  const finalPrice = selectedCoupon ? discountedPrice : totalPrice;
+
   return (
-    <Box
-      sx={{
-        width: '20%',
-        border: '1px solid #ddd',
-        padding: '20px',
-        position: 'sticky',
-        top: '80px',
-      }}
-    >
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ width: "25%", padding: 2, border: "1px solid #ddd", borderRadius: 2, backgroundColor: "#fff", display: "flex", flexDirection: "column", height: "auto", maxHeight: "100vh", overflowY: "auto" }}>
+      {/* Title */}
+      <Typography variant="h4" gutterBottom sx={{ color: "primary.main", textDecoration: "underline", textDecorationColor: "primary.main", textDecorationThickness: 2, textUnderlineOffset: 10 }}>
         Order Summary
       </Typography>
 
-      <Typography variant="h6">
-        Total Price: ₹{totalPrice.toFixed(2)}
-      </Typography>
+      {/* Cart Items */}
+      <Box sx={{ mb: 2 }}>
+        {cartItems.map((item, index) => (
+          <Box key={index} sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body1">{item.name} x {item.quantity || 1}</Typography>
+            <Typography variant="body2">₹{(item.productId.salesPrice * (item.quantity || 1)).toFixed(2)}</Typography>
+          </Box>
+        ))}
+      </Box>
 
+      {/* Total Price */}
+      <Typography variant="body2" sx={{ mb: 2, fontSize: "20px" }}>Total: ₹{totalPrice.toFixed(2)}</Typography>
+
+      {/* Coupons Dropdown */}
       {applicableCoupons.length > 0 && (
-        <FormControl fullWidth sx={{ marginTop: '20px' }}>
-          <InputLabel id="coupon-select-label">Available Coupons</InputLabel>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Coupons</InputLabel>
           <Select
-            labelId="coupon-select-label"
-            value={selectedCoupon?._id || ''}
+            value={selectedCoupon?._id || ""}
             onChange={handleCouponSelect}
+            sx={{ whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}
           >
-            <MenuItem value="">
-              None
-            </MenuItem>
+            <MenuItem value="">None</MenuItem>
             {applicableCoupons.map((coupon) => (
-              <MenuItem key={coupon._id} value={coupon._id}>
-                {coupon.name} -{' '}
-                {coupon.discountType === 'FLAT'
-                  ? `Flat ₹${coupon.discountValue}`
-                  : `${coupon.discountValue}% off`}
+              <MenuItem key={coupon._id} value={coupon._id} sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+                {coupon.name} - {coupon.discountType === "FLAT" ? `₹${coupon.discountValue}` : `${coupon.discountValue}%`}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
       )}
 
+      {/* Discounted Price */}
       {selectedCoupon && (
-        <Typography variant="h6" sx={{ marginTop: '10px', color: 'green' }}>
-          Discounted Price: ₹{discountedPrice.toFixed(2)}
+        <Typography variant="body2" sx={{ mb: 2, fontSize: "18px", color: "green" }}>
+          Discount Value: ₹{(totalPrice - discountedPrice).toFixed(2)}
         </Typography>
       )}
 
+      {/* Final Price */}
+      <Typography variant="body1" sx={{ fontSize: "20px", mt: "auto" }}>
+        Final Price: ₹{finalPrice.toFixed(2)}
+      </Typography>
+
+      {/* Place Order Button */}
       <Button
-        onClick={() => handlePlaceOrder()}
+        onClick={handlePlaceOrder}
         sx={{
-          backgroundColor: 'black',
-          color: 'white',
-          padding: '10px 20px',
-          width: '100%',
-          textAlign: 'center',
-          borderRadius: '5px',
-          fontSize: '16px',
-          marginTop: '20px',
+          backgroundColor: "#000",
+          color: "#fff",
+          width: "100%",
+          padding: "8px",
+          fontSize: "14px",
+          mt: 1,
+          "&:hover": { backgroundColor: "#333" },
         }}
       >
         Place Order

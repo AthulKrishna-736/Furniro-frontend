@@ -99,7 +99,7 @@ const Navbar = () => {
         >
           <Button onClick={() => navigate('/home')} sx={getButtonStyle('/home')}>Home</Button>
           <Button onClick={() => navigate('/products')} sx={getButtonStyle('/products')}>Products</Button>
-          <Button onClick={() => navigate('/about-us')} sx={getButtonStyle('/about-us')}>About Us</Button>
+          {/* <Button onClick={() => navigate('/about-us')} sx={getButtonStyle('/about-us')}>About Us</Button> */}
         </Box>
 
         {/* Icons and Logout Button on the right */}

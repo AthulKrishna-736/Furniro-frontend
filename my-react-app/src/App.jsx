@@ -33,6 +33,7 @@ import CatOfferPage from './pages/admin/CatOfferPage'
 import ScrollToTop from './utils/ScrollControl'
 import SalesReportPage from './pages/admin/SalesReportPage'
 import ProtectAdmin from './pages/protectRoutes/ProtectAdmin'
+import ErrorPage from './pages/ErrorPage'
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
@@ -166,6 +167,8 @@ const App = () => {
           </ProtectAdmin>
         } />      
 
+        {/* For not defined routes */}
+        <Route path='*' element={<ErrorPage/>} />
       </Routes>
     </Router>
     </Provider>

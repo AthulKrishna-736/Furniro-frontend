@@ -120,14 +120,17 @@ const UserCheckoutPage = () => {
             maxHeight: '550px',
             paddingRight: '10px',
             '&::-webkit-scrollbar': {
-              width: '6px',
+              width: '8px',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: '#000',
+              backgroundColor: '#aaa',
               borderRadius: '10px',
             },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: '#888',
+            },
             '&::-webkit-scrollbar-track': {
-              backgroundColor: '#f0f0f0',
+              backgroundColor: '#e0e0e0',
             },
           }}
         >
@@ -261,6 +264,7 @@ const UserCheckoutPage = () => {
 
         {/* Right side - OrderSummary */}
         <OrderSummary 
+        cartItems={cartItems}
         totalPrice={totalPrice} 
         handlePlaceOrder={handlePlaceOrder} 
         coupons={coupons} 

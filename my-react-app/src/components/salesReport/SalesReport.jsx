@@ -28,9 +28,11 @@ const SalesReport = () => {
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [error, setError] = useState('');
 
   const fetchSalesReport = async () => {
     setLoading(true);
+    setError('')
     try {
       const response = await axiosInstance.get('/admin/getSalesReport', {
         params: {
@@ -50,6 +52,7 @@ const SalesReport = () => {
       }
     } catch (error) {
       console.error('Error fetching sales report:', error);
+      setError(error.response.data.message)
     } finally {
       setLoading(false);
     }
@@ -59,11 +62,7 @@ const SalesReport = () => {
     fetchSalesReport();
   }, [filter, page, startDate, endDate]);
 
-  const handlePdfDownload = async () => {
-    console.log('PDF button clicked and downloading...');
-    console.log('Sales data here:', salesData.allOrdersData);
-    console.log('Sales statistics:', salesData.statistics);
-  
+  const handlePdfDownload = async () => {  
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ format: [400, 310] });
   
@@ -228,85 +227,91 @@ const SalesReport = () => {
 
       {/* Content */}
       {loading ? (
-        <Box display="flex" justifyContent="center" mt={3}>
-          <CircularProgress />
-        </Box>
-      ) : salesData ? (
-        <>
-          {/* Statistics */}
-          <Grid container spacing={3} mb={3}>
-            <StatisticsCard title="Overall Sales Count" value={salesData.statistics.totalOrders} />
-            <StatisticsCard title="Overall Order Amount" value={`₹${salesData.statistics.totalSales}`} />
-            <StatisticsCard title="Overall Discount" value={`₹${salesData.statistics.totalDiscount}`} />
-          </Grid>
+  <Box display="flex" justifyContent="center" mt={3}>
+    <CircularProgress />
+  </Box>
+) : error ? (
+  // Display the error message when there is an error, such as no data available
+  <Typography variant="body1" align="center" mt={3} color="error">
+    {error.message || "No sales data available for the selected filter or date range."}
+  </Typography>
+) : salesData ? (
+  <>
+    {/* Statistics */}
+    <Grid container spacing={3} mb={3}>
+      <StatisticsCard title="Overall Sales Count" value={salesData.statistics.totalOrders} />
+      <StatisticsCard title="Overall Order Amount" value={`₹${salesData.statistics.totalSales}`} />
+      <StatisticsCard title="Overall Discount" value={`₹${salesData.statistics.totalDiscount}`} />
+    </Grid>
 
-          {/* Sales Table */}
-          <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, overflow: 'hidden' }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: '#1472f9' }}>
-                  {['Order ID', 'Customer Name', 'Products', 'Total Price', 'Order Date', 'Status'].map((head) => (
-                    <TableCell key={head} sx={{ color: 'white', fontWeight: 'bold' }}>
-                      {head}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {salesData.tableData.map((order) => (
-                  <TableRow
-                    key={order.orderId}
-                    sx={{
-                      '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                      '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
-                      '&:hover': { backgroundColor: '#f0f8ff' },
-                    }}
-                  >
-                    <TableCell>{order.orderId}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>
-                      {order.products.map((product, index) => (
-                        <Typography key={index} variant="body2" sx={{ fontSize: '0.9rem', color: '#555' }}>
-                          {product.name} (x{product.quantity})
-                        </Typography>
-                      ))}
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#2e7d32' }}>₹{order.totalPrice}</TableCell>
-                    <TableCell>{order.orderDate}</TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: 'bold',
-                        color:
-                          order.status === 'Delivered'
-                            ? '#388e3c'
-                            : order.status === 'Cancelled'
-                            ? '#d32f2f'
-                            : '#f57c00',
-                      }}
-                    >
-                      {order.status}
-                    </TableCell>
-                  </TableRow>
+    {/* Sales Table */}
+    <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, overflow: 'hidden' }}>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ backgroundColor: '#1472f9' }}>
+            {['Order ID', 'Customer Name', 'Products', 'Total Price', 'Order Date', 'Status'].map((head) => (
+              <TableCell key={head} sx={{ color: 'white', fontWeight: 'bold' }}>
+                {head}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {salesData.tableData.map((order) => (
+            <TableRow
+              key={order.orderId}
+              sx={{
+                '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
+                '&:hover': { backgroundColor: '#f0f8ff' },
+              }}
+            >
+              <TableCell>{order.orderId}</TableCell>
+              <TableCell>{order.customerName}</TableCell>
+              <TableCell>
+                {order.products.map((product, index) => (
+                  <Typography key={index} variant="body2" sx={{ fontSize: '0.9rem', color: '#555' }}>
+                    {product.name} (x{product.quantity})
+                  </Typography>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#2e7d32' }}>₹{order.totalPrice}</TableCell>
+              <TableCell>{order.orderDate}</TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  color:
+                    order.status === 'Delivered'
+                      ? '#388e3c'
+                      : order.status === 'Cancelled'
+                      ? '#d32f2f'
+                      : '#f57c00',
+                }}
+              >
+                {order.status}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
 
-          {/* Pagination */}
-          <Box display="flex" justifyContent="center" mt={3}>
-            <Pagination
-              count={salesData.pagination?.totalPages || 1}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-            />
-          </Box>
-        </>
-      ) : (
-        <Typography variant="body1" align="center" mt={3}>
-          No sales data available.
-        </Typography>
-      )}
+    {/* Pagination */}
+    <Box display="flex" justifyContent="center" mt={3}>
+      <Pagination
+        count={salesData.pagination?.totalPages || 1}
+        page={page}
+        onChange={(e, value) => setPage(value)}
+        color="primary"
+      />
+    </Box>
+  </>
+) : (
+  <Typography variant="body1" align="center" mt={3}>
+    No sales data available.
+  </Typography>
+)}
+
     </Box>
   );
 };

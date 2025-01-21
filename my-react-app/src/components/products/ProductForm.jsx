@@ -249,16 +249,17 @@ const handleSubmit = async (e) => {
     if (productToEdit) {
       // Edit product
       const response = await axiosInstance.put(`/admin/updateProduct/${productToEdit._id}`, finalData);
+      showSuccessToast(response.data.message);
     } else {
       // Add new product
       const response = await axiosInstance.post('/admin/addProducts', finalData);
+      showSuccessToast(response.data.message);
     }
 
     await fetchProducts();
     resetFormData();
     closeModal();
 
-    showSuccessToast("Product added/updated successfully!");
   } catch (error) {
     showErrorToast(error.response?.data?.message || "Error adding/updating product");
     console.error("Error during submission:", error);

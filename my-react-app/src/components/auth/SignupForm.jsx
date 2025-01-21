@@ -32,20 +32,34 @@ const SignUpForm = () => {
         }
     },[otpVerified]);
 
-    const handleChange = (e)=>{
-        setFormData({
-            ...formData,
-            [e.target.name] : e.target.value
-        });
-
-        if(errors[e.target.name]){
-            setErrors((prevErrors)=>({
-                ...prevErrors,
-                [e.target.name] : '',
-            }));
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+      
+        setFormData((prevData) => ({
+          ...prevData,
+          [name]: value,
+        }));
+      
+        // Clear errors for the current field
+        if (errors[name]) {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: '',
+          }));
         }
-    }
-
+      
+        // Additional validation for password matching
+        if (name === 'confirmPassword' || name === 'password') {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            confirmPassword: 
+              name === 'confirmPassword' && value !== formData.password
+                ? 'Passwords do not match'
+                : '',
+          }));
+        }
+      };
+      
     const validateForm = ()=>{
         // Check for required fields
         const fieldReqErrors = validateFieldsReq(formData);
@@ -167,15 +181,26 @@ const SignUpForm = () => {
                 helperText={errors.email}
             />
             <TextField
-                fullWidth
-                margin="normal"
-                label="Password"
-                name="password"
-                type="password"
-                value={password}
-                onChange={handleChange}
-                error={!!errors.password}
-                helperText={errors.password}
+            fullWidth
+            margin="normal"
+            label="Password"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
+            />
+            <TextField
+            fullWidth
+            margin="normal"
+            label="Confirm Password"
+            name="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             />
             <Button
                 type="submit"
