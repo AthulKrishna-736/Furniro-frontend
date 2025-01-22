@@ -33,6 +33,7 @@ const OrderDetail = () => {
     try {
       const response = await axiosInstance.get(`/user/getOrder/${userId}?page=${page}`);
       const { orders, pagination } = response.data;
+      console.log('check order: ', orders)
       setOrders(orders); 
       setPagination(pagination);
     } catch (error) {
@@ -151,16 +152,14 @@ const OrderDetail = () => {
   
       const doc = new jsPDF();
   
-      // Header: Company Name
       doc.setFontSize(24);
       doc.setTextColor("#333");
-      doc.text("Furniro", 14, 20); // Company name
+      doc.text("Furniro", 14, 20);
       doc.setFontSize(12);
       doc.text(`Invoice Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
       doc.setLineWidth(0.5);
-      doc.line(14, 32, 200, 32); // Divider
+      doc.line(14, 32, 200, 32); 
   
-      // Order Details Section
       doc.setFontSize(16);
       doc.text("Order Details", 14, 50);
   
@@ -173,15 +172,13 @@ const OrderDetail = () => {
       doc.text(`Payment Status: ${order.paymentStatus}`, 14, 110);
       doc.text(`Order Status: ${order.status}`, 14, 120);
   
-      // Items Table
       doc.setFontSize(16);
       doc.text("Ordered Items", 14, 140);
   
       const headers = ["Product Name", "Quantity", "Unit Price", "Total Price"];
-      const columnWidths = [70, 30, 40, 40]; // Adjust column widths as needed
+      const columnWidths = [70, 30, 40, 40]; 
       let currentY = 150;
   
-      // Table Header
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       let xPos = 14;
@@ -190,9 +187,8 @@ const OrderDetail = () => {
         xPos += columnWidths[index];
       });
   
-      // Table Rows
       doc.setFont("helvetica", "normal");
-      currentY += 10; // Move down for rows
+      currentY += 10;
   
       order.orderedItems.forEach((item) => {
         const product = item.productId;
@@ -210,15 +206,13 @@ const OrderDetail = () => {
         xPos += columnWidths[2];
         doc.text(totalPrice, xPos, currentY);
   
-        currentY += 10; // Move to the next row
+        currentY += 10; 
       });
   
-      // Total Price
       doc.setFontSize(16);
       doc.text(`Total Price: Rs ${order.totalPrice}`, 14, currentY + 10);
   
-      // Thank You Message and Support Email
-      currentY += 30; // Add spacing
+      currentY += 30; 
       doc.setFontSize(14);
       doc.text("Thank you for shopping with us!", 14, currentY);
       currentY += 10;
@@ -247,7 +241,6 @@ const OrderDetail = () => {
       console.error("Error generating invoice:", error);
     }
   };  
-  
   
   const steps = [
     { label: 'Pending', icon: <ShoppingCartOutlinedIcon /> },
@@ -292,7 +285,7 @@ const OrderDetail = () => {
           </Typography>       
           ) : (
          orders.map((order) => (
-          <Box key={order._id} sx={{ border: '1px solid #ddd', padding: '20px', marginBottom: '20px', position: 'relative' }}>
+          <Box key={order.orderId} sx={{ border: '1px solid #ddd', padding: '20px', marginBottom: '20px', position: 'relative' }}>
             <Typography 
               variant="h6" 
               sx={{
@@ -316,8 +309,8 @@ const OrderDetail = () => {
               Status: {order.status}
             </Typography>
 
-            <Typography variant="h6" gutterBottom>Order ID: {order._id}</Typography>
-            <Typography variant="h6">User Name: {order.userId.firstName}</Typography>
+            <Typography variant="h6" gutterBottom>Order ID: {order.orderId}</Typography>
+            <Typography variant="h6">User Name: {order.name}</Typography>
             <Typography variant="h6">Total Price: ₹{order.totalPrice}</Typography>
             <Typography variant="h6">Payment Method: {order.payment}</Typography>
             <Typography variant="h6">Payment Status: {order.paymentStatus}</Typography>            
@@ -328,7 +321,7 @@ const OrderDetail = () => {
                 day: 'numeric',
               })}
             </Typography>
-            <Typography variant="h6">Address: {order.selectedAddress}</Typography>
+            <Typography variant="h6">Address: {order.address}</Typography>
 
             {/* Progress Bar */}
             <Box sx={{ padding: '20px', marginBottom: '20px', marginTop: '10px' }}>
@@ -487,25 +480,25 @@ const OrderDetail = () => {
             {expandedOrder === order._id && (
               <Box sx={{ marginTop: '20px' }}>
                 {order.orderedItems.map((item) => (
-                  <Box key={item.productId._id} sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    {item.productId.images && item.productId.images[0] && (
-                      <img 
-                        src={item.productId.images[0]} 
-                        alt={item.productId.name} 
-                        style={{ width: '50px', height: '50px', marginRight: '15px' }}
-                      />
-                    )}
+                  <Box key={item.productId} sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <img
+                      src={item.image}
+                      alt={item.name || 'Product Image'}
+                      width="50"
+                      height="50"
+                      style={{ marginRight: '15px', borderRadius: '5px', objectFit: 'cover' }}
+                    />
                     <Typography variant="body1" sx={{ marginRight: '15px' }}>
-                      {item.productId.name}
+                      {item.name || 'no name'}
                     </Typography>
                     <Typography variant="body2" sx={{ marginRight: '15px' }}>
-                      ₹{item.productId.salesPrice}
+                      ₹{item.price}
                     </Typography>
                     <Typography variant="body2" sx={{ marginRight: '15px'}}>
                       Quantity: {item.quantity}
                     </Typography>
                     <Typography variant="body2">
-                      Total: ₹{item.quantity * item.productId.salesPrice}
+                      Total: ₹{item.quantity * item.price}
                     </Typography>
                   </Box>
                 ))}

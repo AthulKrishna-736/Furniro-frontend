@@ -263,8 +263,8 @@ const CouponTable = () => {
                 <TableCell>{coupon.name}</TableCell>
                 <TableCell>{coupon.discountType}</TableCell>
                 <TableCell>{coupon.discountValue}</TableCell>
-                <TableCell>{coupon.minPrice}</TableCell>
-                <TableCell>{coupon.maxPrice}</TableCell>
+                <TableCell>{coupon.minPrice || 'N/A'}</TableCell>
+                <TableCell>{coupon.maxPrice || 'N/A'}</TableCell>
                 <TableCell>{new Date(coupon.expiryDate).toLocaleDateString()}</TableCell>
                 <TableCell>{coupon.count}</TableCell>
                 <TableCell>{coupon.usedCount || 0}</TableCell>

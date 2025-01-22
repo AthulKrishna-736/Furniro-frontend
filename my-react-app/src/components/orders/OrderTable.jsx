@@ -84,7 +84,7 @@ const OrderTable = ({ orders, handleSaveStatus }) => {
                 <TableRow key={order.orderId} hover>
                   <TableCell>{order.orderId}</TableCell>
                   <TableCell>{order.userName}</TableCell>
-                  <TableCell>₹{order.totalPrice}</TableCell>
+                  <TableCell>₹{order.finalPrice}</TableCell>
                   <TableCell>
                     <Select
                       value={tempStatus}

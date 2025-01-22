@@ -76,7 +76,7 @@ const UserCheckoutPage = () => {
       discountedPrice,
       selectedCoupon: selectedCoupon?._id,
     };
-    console.log('order data resutl = ',orderData)
+    console.log('order data result = ',orderData)
   
     if (paymentMethod === 'Razorpay') {
       console.log('Payment method selected: ', paymentMethod);
