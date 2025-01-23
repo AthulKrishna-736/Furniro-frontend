@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 
-const AlertConfirm = ({ open, message, onConfirm, onCancel }) => {
+const AlertConfirm = ({ open, message, onConfirm, onCancel, children }) => {
   return (
     <Modal open={open} onClose={onCancel}>
       <Box
@@ -45,6 +45,10 @@ const AlertConfirm = ({ open, message, onConfirm, onCancel }) => {
         >
           {message}
         </Typography>
+
+        {/* Render children here */}
+        {children && <Box sx={{ mt: 2 }}>{children}</Box>}
+        
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
           <Button onClick={onCancel} color="#666666">
             Cancel
