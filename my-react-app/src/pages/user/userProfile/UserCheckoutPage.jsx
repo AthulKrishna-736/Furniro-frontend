@@ -17,6 +17,7 @@ const UserCheckoutPage = () => {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [cartId, setCartId] = useState('');
   const [orderDetails, setOrderDetails] = useState({});
+  const [orderId, setOrderId] = useState('');
   const [totalPrice, setTotalPrice] = useState(0);
   const [razorpay, setRazorpayOpen] = useState(false);
   const [coupons, setCoupons] = useState([])
@@ -39,12 +40,12 @@ const UserCheckoutPage = () => {
     }
   };
 
-  const fetchCoupons = async() =>{
+  const fetchCoupons = async () => {
     try {
       const response = await axiosInstance.get(`/user/getCoupons`);
       setCoupons(response.data.coupons);
     } catch (error) {
-      consoele.log('error while getting coupons: ',error)
+      consoele.log('error while getting coupons: ', error)
     }
   }
 
@@ -62,7 +63,7 @@ const UserCheckoutPage = () => {
     setPaymentMethod(event.target.value);
   };
 
-  const handleCloseModal = () =>{
+  const handleCloseModal = () => {
     setOrderSuccess(false);
   }
 
@@ -75,23 +76,23 @@ const UserCheckoutPage = () => {
       totalPrice,
       discountedPrice,
       selectedCoupon: selectedCoupon?._id,
+      paymentStatus: paymentMethod === 'Wallet' ? 'Completed' : 'Pending',
     };
-    console.log('order data result = ',orderData)
-  
+    console.log('order data result = ', orderData)
+
     if (paymentMethod === 'Razorpay') {
       console.log('Payment method selected: ', paymentMethod);
-      setRazorpayOpen(true); 
-      return; 
+      setRazorpayOpen(true);
     }
-  
+
     await proceedWithOrder(orderData);
   };
-  
+
   const proceedWithOrder = async (orderData) => {
     try {
       const orderResponse = await axiosInstance.post('/user/placeOrder', orderData);
       setOrderDetails(orderResponse.data.order);
-  
+      setOrderId(orderResponse.data.order._id)
       showSuccessToast(orderResponse.data.message);
       await fetchCart();
       setSelectedAddress('');
@@ -102,7 +103,7 @@ const UserCheckoutPage = () => {
       showErrorToast(error.response?.data?.message);
     }
   };
-  
+
   return (
     <Box>
       {/* Navbar */}
@@ -257,21 +258,21 @@ const UserCheckoutPage = () => {
 
           {/* Payment */}
           <PaymentMethod
-           paymentMethod={paymentMethod}
-           handlePaymentChange={handlePaymentChange}          
+            paymentMethod={paymentMethod}
+            handlePaymentChange={handlePaymentChange}
           />
         </Box>
 
         {/* Right side - OrderSummary */}
-        <OrderSummary 
-        cartItems={cartItems}
-        totalPrice={totalPrice} 
-        handlePlaceOrder={handlePlaceOrder} 
-        coupons={coupons} 
-        selectedCoupon={selectedCoupon} 
-        setSelectedCoupon={setSelectedCoupon}
-        discountedPrice={discountedPrice}
-        setDiscountedPrice={setDiscountedPrice}
+        <OrderSummary
+          cartItems={cartItems}
+          totalPrice={totalPrice}
+          handlePlaceOrder={handlePlaceOrder}
+          coupons={coupons}
+          selectedCoupon={selectedCoupon}
+          setSelectedCoupon={setSelectedCoupon}
+          discountedPrice={discountedPrice}
+          setDiscountedPrice={setDiscountedPrice}
         />
       </Box>
 
@@ -279,22 +280,12 @@ const UserCheckoutPage = () => {
       {razorpay && (
         <PaymentComponent
           userId={userId}
-          amount={discountedPrice == 0 ? totalPrice : discountedPrice}
+          amount={discountedPrice === 0 ? totalPrice : discountedPrice} 
+          orderId={orderId}
           setRazorpayOpen={setRazorpayOpen}
-          onPaymentSuccess={async () =>{
-          const orderData = {
-          userId,
-          cartId,
-          selectedAddress,
-          paymentMethod,
-          totalPrice: discountedPrice == 0 ? totalPrice : discountedPrice,
-          selectedCoupon: selectedCoupon?._id,
-          };
-          console.log('order data in razor: ', orderData)
-          await proceedWithOrder(orderData);
-          }}
         />
       )}
+
 
       {/* Modal for success message */}
       {orderSuccess && (

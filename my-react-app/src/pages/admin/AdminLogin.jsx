@@ -13,19 +13,16 @@ const AdminLogin = () => {
   const fetchBanners = async () => {
     try {
       const response = await axiosInstance.get('/admin/getBanners');
-      console.log('res - ', response?.data?.banner)
       setBgImages(response?.data?.banner);
     } catch (error) {
       console.error('Error fetching admin banners:', error);
     }
   };
 
-  // Fetch banners on component mount
   useEffect(() => {
     fetchBanners();
   }, []);
 
-  // Select a random admin-specific banner image
   useEffect(() => {
     if (bgImages.length > 0) {
       const adminPageImages = bgImages.filter((image) => image.bannerLocation == 'AuthPages');

@@ -20,20 +20,17 @@ const Chart = () => {
         setLoading(true);
         setError(null);
 
-        // Use Promise.all to fetch chart data and top-selling data concurrently
         const [chartResponse, topSellingResponse] = await Promise.all([
           axiosInstance.get(`/admin/chartData?filter=${filter}`),
           axiosInstance.get('/admin/topSelling'),
         ]);
 
-        console.log('chartdata', chartResponse.data)
-        console.log('top data: ', topSellingResponse.data)
-        setChartData(chartResponse.data); // Update chart data
+        setChartData(chartResponse.data);
         setTopSelling({
-          product: topSellingResponse.data.topProducts || null, // Expecting a single product
-          category: topSellingResponse.data.topCategories || null, // Expecting a single category
+          product: topSellingResponse.data.topProducts || [],
+          category: topSellingResponse.data.topCategories || [],
         });
-      } catch (err) {
+      } catch {
         setError('Failed to fetch data. Please try again.');
       } finally {
         setLoading(false);
@@ -43,36 +40,46 @@ const Chart = () => {
     fetchData();
   }, [filter]);
 
-  const barChartData = {
-    labels: chartData.map((entry) => entry.period),
+  const createChartData = (labels, data, color) => ({
+    labels,
     datasets: [
       {
-        label: 'Total Sales',
-        data: chartData.map((entry) => entry.totalSales),
-        backgroundColor: 'rgba(63, 81, 181, 0.7)',
-        borderColor: 'rgba(63, 81, 181, 1)',
+        label: 'Units Sold',
+        data,
+        backgroundColor: `${color}70`, // Semi-transparent
+        borderColor: color,
         borderWidth: 1,
       },
     ],
-  };
+  });
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: true },
       title: { display: true, text: `${filter} Sales` },
     },
   };
-  
+
+  const productChartData = createChartData(
+    topSelling?.product?.map((p) => p.productDetails?.name || 'Unknown'),
+    topSelling.product?.map((p) => p.totalQuantity),
+    'rgba(0, 200, 83, 1)'
+  );
+
+  const categoryChartData = createChartData(
+    topSelling?.category?.map((c) => c.categoryDetails?.name || 'Unknown'),
+    topSelling?.category?.map((c) => c.totalQuantity),
+    'rgba(255, 87, 34, 1)'
+  );
 
   return (
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
-        Admin Dashboard - Sales Chart
+        Admin Dashboard - Sales Charts
       </Typography>
 
-      {/* Filter Dropdown */}
       <Box mb={3}>
         <Typography variant="subtitle1">Filter By:</Typography>
         <Select value={filter} onChange={(e) => setFilter(e.target.value)} displayEmpty>
@@ -82,61 +89,89 @@ const Chart = () => {
         </Select>
       </Box>
 
-      {/* Loading, Error, or Chart */}
       {loading ? (
         <CircularProgress />
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
-      <Box mb={5} style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
-        <Bar data={barChartData} options={options} height={400}/>
-      </Box>
-      )}
-      {/* Top Selling Product and Category */}
-      {!loading && !error && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Top Selling Product
-                </Typography>
-                <Box>
-                {topSelling.product && topSelling.product.length > 0 ? (
-                  topSelling.product.map((product, index) => (
-                    <Typography key={product._id}>
-                      {index + 1}. {product.productDetails?.name || 'Unknown Product'} - {product.totalQuantity} units sold
-                    </Typography>
-                  ))
-                ) : (
-                  <Typography>No top-selling product data available.</Typography>
-                )}
-                </Box>
-              </CardContent>
-            </Card>
+        <>
+          {/* Total Sales Chart */}
+          <Box mb={5} style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <Bar
+              data={{
+                labels: chartData.map((entry) => entry.period),
+                datasets: [
+                  {
+                    label: 'Total Sales',
+                    data: chartData.map((entry) => entry.totalSales),
+                    backgroundColor: 'rgba(63, 81, 181, 0.7)',
+                    borderColor: 'rgba(63, 81, 181, 1)',
+                    borderWidth: 1,
+                  },
+                ],
+              }}
+              options={options}
+              height={400}
+            />
+          </Box>
+
+          {/* Top Selling Data Cards */}
+          <Grid container spacing={3} mb={5}>
+            <Grid item xs={12} md={6}>
+              <Card style={{ backgroundColor: '#f1f8e9', borderRadius: '10px' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Top Selling Products
+                  </Typography>
+                  {topSelling.product.length > 0 ? (
+                    topSelling.product.map((product, index) => (
+                      <Typography key={product._id} style={{ margin: '5px 0' }}>
+                        {index + 1}. {product.productDetails?.name || 'Unknown Product'} - {product.totalQuantity} units
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography>No data available.</Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card style={{ backgroundColor: '#ffebee', borderRadius: '10px' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Top Selling Categories
+                  </Typography>
+                  {topSelling.category.length > 0 ? (
+                    topSelling.category.map((category, index) => (
+                      <Typography key={category._id} style={{ margin: '5px 0' }}>
+                        {index + 1}. {category.categoryDetails?.name || 'Unknown Category'} - {category.totalQuantity} units
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography>No data available.</Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Top Selling Category
-                </Typography>
-                <Box>
-                {topSelling.category && topSelling.category.length > 0 ? (
-                  topSelling.category.map((category, index) => (
-                    <Typography key={category._id}>
-                      {index + 1}. {category.categoryDetails?.name || 'Unknown Category'} - {category.totalQuantity} units sold
-                    </Typography>
-                  ))
-                ) : (
-                  <Typography>No top-selling category data available.</Typography>
-                )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+          {/* Product and Category Charts */}
+          <Box>
+            <Typography variant="h5" gutterBottom>
+              Top Selling Products Chart
+            </Typography>
+            <Box mb={5} style={{ maxWidth: '1000px', margin: '0 auto' }}>
+              <Bar data={productChartData} options={options} height={400} />
+            </Box>
+
+            <Typography variant="h5" gutterBottom>
+              Top Selling Categories Chart
+            </Typography>
+            <Box style={{ maxWidth: '1000px', margin: '0 auto' }}>
+              <Bar data={categoryChartData} options={options} height={400} />
+            </Box>
+          </Box>
+        </>
       )}
     </Box>
   );

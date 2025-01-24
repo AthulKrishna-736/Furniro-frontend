@@ -16,6 +16,7 @@ import AlertConfirm from '../customAlert/AlertConfirm';
 import OrderProgress from './ProgessBar';
 import ExpandedOrder from './ExpandedOrder';
 
+
 const OrderDetail = () => {
   const navigate = useNavigate()
   const [orders, setOrders] = useState([]);
@@ -124,7 +125,6 @@ const OrderDetail = () => {
 
   const handleCancelProduct = async (productId, orderId) => {
     try {
-      console.log('check product id ', productId)
       const response = await axiosInstance.patch('/user/cancelProduct', {
         orderId,
         productId,
@@ -139,9 +139,7 @@ const OrderDetail = () => {
 
   const handleReturnProduct = async (productId, orderId, reason) => {
     try {
-      console.log('check product id ', productId, orderId, reason);
-      
-      const response = await axiosInstance.patch('/user/returnRequest',{
+      const response = await axiosInstance.patch('/user/returnRequest', {
         orderId,
         productId,
         reason,
@@ -165,7 +163,7 @@ const OrderDetail = () => {
     const alertMessage = messages[action];
     setMessage(alertMessage);
     setOrderId(orderId);
-    setProductId(productId); 
+    setProductId(productId);
     setAlertOpen(true);
   };
 
@@ -274,6 +272,62 @@ const OrderDetail = () => {
     }
   };
 
+  const handleRetryPayment = async (orderId, totalPrice) => {
+    try {
+      console.log('Retrying payment for order ID:', orderId, totalPrice);
+  
+      const { data } = await axiosInstance.post('/user/createOrder', {
+        amount:totalPrice,
+        currency: 'INR',
+        userId,
+      });
+
+      const { order, user }  = data
+  
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_ID_KEY,
+        amount: order.amount, 
+        currency: 'INR',
+        name: 'Furniro Payment',
+        description: 'Complete Your Purchase',
+        order_id: order.razorpayOrderId,  
+        handler: async (response) => {
+          try {
+            await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
+              orderId,
+              paymentStatus: 'Completed',
+              razorpayDetails: response,
+            });
+  
+            showSuccessToast('Payment successful! Thank you for your order.');
+          } catch (error) {
+            showErrorToast('Payment processing failed. Please contact support.');
+          }
+        },
+        modal: {
+          ondismiss: async () => {
+            try {
+              await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
+                orderId,
+                paymentStatus: 'Failed',
+              });
+            } catch (error) {
+              console.error('Failed to update payment status on dismiss: ', error);
+            }
+            showErrorToast('Payment cancelled. Order status updated.');
+          },
+        },
+      };
+  
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Error while retrying payment:', error);
+      showErrorToast('Failed to fetch order details or initialize payment.');
+    }
+  };
+  
+
   const steps = [
     { label: 'Pending', icon: <ShoppingCartOutlinedIcon /> },
     { label: 'Processing', icon: <HourglassEmpty /> },
@@ -374,12 +428,12 @@ const OrderDetail = () => {
                   padding: '20px 0',
                 }}
               >
-                {/* Return Button */}
-                {/* {order.status == 'Delivered' && (
+
+                {(order.payment === 'Razorpay' && order.paymentStatus === 'Failed') && (
                   <Button
-                    onClick={() => handleAlertClick(order.orderId, 'return')}
+                    onClick={() => handleRetryPayment(order.orderId, order.totalPrice)}
                     sx={{
-                      color: '#007BFF',
+                      color: '#FF9800',
                       fontSize: '16px',
                       fontWeight: '500',
                       display: 'flex',
@@ -387,17 +441,16 @@ const OrderDetail = () => {
                       gap: '8px',
                       textTransform: 'none',
                       padding: '8px 16px',
-                      border: '1px solid #007BFF',
+                      border: '1px solid #FF9800',
                       borderRadius: '5px',
                       '&:hover': {
-                        backgroundColor: '#E0F3FF',
+                        backgroundColor: '#FFF3E0',
                       },
                     }}
                   >
-                    <ReplayIcon sx={{ fontSize: '20px' }} />
-                    Return
+                    Retry Payment
                   </Button>
-                )} */}
+                )}
 
                 {/* Cancel Button (only for Pending or Processing status) */}
                 {(order.status === 'Pending' || order.status === 'Processing') && (
@@ -452,50 +505,50 @@ const OrderDetail = () => {
             </Box>
           ))
         )}
-      <AlertConfirm
-        open={alertOpen}
-        message={message}
-        onConfirm={() => {
-          if (message.includes('cancel') && !productId) {
-            handleCancelOrder(orderId); 
-          } else if (message.includes('return') && !productId) {
-            handleReturnOrder(orderId, reason); 
-          } else if (message.includes('cancel') && productId) {
-            handleCancelProduct(productId, orderId); 
-          } else if (message.includes('return') && productId) {
-            handleReturnProduct(productId, orderId, reason); 
-          }
-          setReason(''); 
-          setAlertOpen(false);
-        }}
-        onCancel={() => {
-          setReason(''); 
-          setAlertOpen(false);
-        }}
-      >
-      {message.includes('return') && (
-        <textarea
-          placeholder="Enter reason for return"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          style={{
-            width: '100%',  
-            maxWidth: '380px', 
-            height: '80px', 
-            marginTop: '1rem',
-            marginBottom: '1rem',
-            padding: '8px',
-            fontSize: '18px',
-            fontFamily: 'Arial, sans-serif', 
-            fontWeight: 'normal',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            resize: 'none', 
-            outline: 'none',
-            }}
-          />
-        )}
-      </AlertConfirm>
+        <AlertConfirm
+          open={alertOpen}
+          message={message}
+          onConfirm={() => {
+            if (message?.includes('cancel') && !productId) {
+              handleCancelOrder(orderId);
+            } else if (message?.includes('return') && !productId) {
+              handleReturnOrder(orderId, reason);
+            } else if (message?.includes('cancel') && productId) {
+              handleCancelProduct(productId, orderId);
+            } else if (message?.includes('return') && productId) {
+              handleReturnProduct(productId, orderId, reason);
+            }
+            setReason('');
+            setAlertOpen(false);
+          }}
+          onCancel={() => {
+            setReason('');
+            setAlertOpen(false);
+          }}
+        >
+          {message?.includes('return') && (
+            <textarea
+              placeholder="Enter reason for return"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              style={{
+                width: '100%',
+                maxWidth: '380px',
+                height: '80px',
+                marginTop: '1rem',
+                marginBottom: '1rem',
+                padding: '8px',
+                fontSize: '18px',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'normal',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                resize: 'none',
+                outline: 'none',
+              }}
+            />
+          )}
+        </AlertConfirm>
 
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>

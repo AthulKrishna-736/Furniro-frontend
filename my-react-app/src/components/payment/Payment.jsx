@@ -2,9 +2,15 @@ import React, { useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 
-const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess }) => {
+const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess, orderId }) => {
+  useEffect(()=>{
+    if(orderId){
+      console.log('order id is there');
+    }else{
+      console.log('order id is not there');
+    }
+  },[])
   useEffect(() => {
-    console.log('user id and amount in payment: ', [userId, amount]);
     const handlePayment = async () => {
       try {
         const { data } = await axiosInstance.post('/user/createOrder', {
@@ -13,9 +19,7 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess })
           userId,
         });
 
-        console.log('res data razor: ', data);
-
-        const { order, user } = data;
+        const { order, user }  = data
 
         const options = {
           key: import.meta.env.VITE_RAZORPAY_ID_KEY,
@@ -26,29 +30,29 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess })
           order_id: order.id,
           handler: async (response) => {
             try {
-              console.log('Razorpay payment response: ', response);
+              await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
+                orderId,
+                paymentStatus: 'Completed',
+                razorpayDetails: response,
+              });
 
               showSuccessToast('Payment successful! Thank you for your order.');
-              onPaymentSuccess();
             } catch (error) {
-              console.error('Error in payment handler: ', error);
-              showErrorToast('Payment error, try again later.');
+              showErrorToast('Payment processing failed. Please contact support.');
             }
           },
-          prefill: {
-            name: `${user.firstName}${user.lastName}`,
-            email: user.email,
-            
-          },
-          theme: {
-            color: '#F37254',
-          },
           modal: {
-            ondismiss: () => {
+            ondismiss: async () => {
+              try {
+                await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
+                  orderId,
+                  paymentStatus: 'Failed',
+                });
+              } catch (error) {
+                console.error('Failed to update payment status on dismiss: ', error);
+              }
               setRazorpayOpen(false);
-              showErrorToast(
-                'Payment failed or cancelled. Please try again or choose another payment method.'
-              );
+              showErrorToast('Payment cancelled. Order status updated.');
             },
           },
         };
@@ -56,7 +60,7 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess })
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } catch (error) {
-        console.log('payment error razor: ', error.response);
+        showErrorToast('Error initializing payment. Please try again.');
       }
     };
 
@@ -64,9 +68,10 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess })
 
     return () => {
       setRazorpayOpen(false);
-      console.log('Razorpay cleanup on unmount');
     };
-  }, [amount, setRazorpayOpen]);
+  }, [amount, setRazorpayOpen, orderId]);
+
+  return null;
 };
 
 export default PaymentComponent;

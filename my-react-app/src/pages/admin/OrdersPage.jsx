@@ -13,7 +13,7 @@ const OrdersPage = () => {
   const fetchOrders = async () => {
     try {
       const response = await axiosInstance.get('/admin/getOrders');
-      console.log('res fetchorder: ',response.data?.orders)
+      console.log('res fetchorder: ', response.data?.orders)
       if (response?.data?.orders) {
         setOrders(response.data.orders);
       } else {
@@ -50,11 +50,27 @@ const OrdersPage = () => {
     }
   };
 
+  const handleReturnRequest = async (orderId, productId, action) => {
+    try {
+      console.log('aceept or reject check: ', orderId, productId, action)
+      const response = await axiosInstance.patch('/admin/returnProduct', {
+        orderId,
+        productId,
+        action,
+      })
+      showSuccessToast(response.data.message);
+      fetchOrders();
+    } catch (error) {
+      console.log('error happened: ', error)
+      showErrorToast(error.response.data.message);
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* Sidebar */}
       <AdminSidebar />
-      <ToastContainer/>
+      <ToastContainer />
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Navbar */}
@@ -71,14 +87,14 @@ const OrdersPage = () => {
           }}
         >
           {/* Smaller Table */}
-          <Box sx={{ width: '90%', maxWidth: '1000px', marginLeft:'200px' }}>
+          <Box sx={{ width: '90%', maxWidth: '1000px', marginLeft: '200px' }}>
             <Typography
               variant="h5"
               sx={{ marginBottom: '20px', fontWeight: 'bold', textAlign: 'center' }}
             >
               Orders Management
             </Typography>
-            <OrderTable orders={orders} handleSaveStatus={handleSaveStatus} />
+            <OrderTable orders={orders} handleSaveStatus={handleSaveStatus} handleReturnRequest={handleReturnRequest} />
           </Box>
         </Box>
       </Box>
