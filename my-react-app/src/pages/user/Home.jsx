@@ -25,7 +25,6 @@ const Home = () => {
         const response = await axiosInstance.get("/user/featuredProducts");
         setProducts(response.data.products);
       } catch (err) {
-        console.error("Error fetching products:", err);
         setError("Failed to fetch products. Please try again later.");
       } finally {
         setLoading(false);
@@ -51,7 +50,7 @@ const Home = () => {
       <ToastContainer/>
       {/* Banner Section */}
       <Banner
-        image={banner.length > 0 && banner[0].bannerLocation == 'Home' ? banner[0].image : "https://via.placeholder.com/1200x500"}
+        image={banner.length > 0 && banner[0].bannerLocation == 'Home' ? banner[0].image : "Unavailabe"}
         text="Choose the Best, Find Your Perfect Piece in Our Store."
       />
 

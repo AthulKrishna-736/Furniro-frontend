@@ -15,19 +15,16 @@ const TrendingProducts = () => {
         const response = await axiosInstance.get('/user/trendingProducts');
         const allProducts = response?.data?.products || [];
   
-        // Filter out blocked products
         const unblockedProducts = allProducts.filter(product => !product.isBlocked);
   
-        // Randomly shuffle the products and select 4
         const shuffledProducts = unblockedProducts.sort(() => Math.random() - 0.5);
         const trending = shuffledProducts.slice(0, 4).map(product => ({
           ...product,
-          name: `${product.name.slice(0, 20)}...`, // Slice the name directly
+          name: `${product.name.slice(0, 20)}...`, 
         }));
   
         setTrendingProducts(trending);
       } catch (err) {
-        console.error('Error fetching trending products:', err);
         setError('Failed to fetch trending products');
       } finally {
         setLoading(false);
@@ -36,7 +33,6 @@ const TrendingProducts = () => {
   
     fetchTrendingProducts();
   }, []);
-  
   
   return (
     <Box sx={{ marginTop: '20px' }}>
@@ -82,19 +78,27 @@ const TrendingProducts = () => {
       ) : error ? (
         <Typography sx={{ color: 'red', textAlign: 'center' }}>{error}</Typography>
       ) : (
-          <Box
-            sx={{
-              display: 'flex',
-              gap: '16px',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              '& > *': {
-                flexShrink: 0,
-                flexBasis: 'calc(22% - 16px)', // Adjusted from 20% to 22%
-                maxWidth: 'calc(22% - 16px)', // Adjusted size
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '16px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            '& > *': {
+              flexShrink: 0,
+              flexBasis: {
+                xs: 'calc(100% - 16px)', 
+                sm: 'calc(48% - 16px)',  
+                md: 'calc(22% - 16px)', 
               },
-            }}
-          >
+              maxWidth: {
+                xs: 'calc(100% - 16px)',
+                sm: 'calc(48% - 16px)',
+                md: 'calc(22% - 16px)',
+              },
+            },
+          }}
+        >
           {trendingProducts.filter(product => product && product._id).map(product => (
             <ProductCard key={product._id} product={product} variant="trending" />
           ))}

@@ -34,6 +34,7 @@ import ScrollToTop from './utils/ScrollControl'
 import SalesReportPage from './pages/admin/SalesReportPage'
 import ProtectAdmin from './pages/protectRoutes/ProtectAdmin'
 import ErrorPage from './pages/ErrorPage'
+import AboutUs from './pages/user/AboutUs'
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENTID;
@@ -48,6 +49,7 @@ const App = () => {
       <Route path='/' element={<LandingPage/>} />
       <Route path='/products' element={ <ProductsPageUser/>  } />
       <Route path='/product-detail/:productId' element={<ProductDetailPage/>} />
+      <Route path='/about-us' element={<AboutUs/>} />
       <Route path='forgot-password' element={<ForgotPassPage/>} />
 
       <Route path='/login' element={<AuthProtect> <LoginPage /> </AuthProtect>} />

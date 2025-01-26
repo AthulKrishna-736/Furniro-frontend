@@ -20,9 +20,9 @@ const ProductsUser = () => {
   const [sortValue, setSortValue] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [cateogory, setCategory] = useState([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState(''); 
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
-  const limit = 8; 
+  const limit = 8;
 
   const fetchProducts = async () => {
     try {
@@ -30,23 +30,20 @@ const ProductsUser = () => {
         page,
         limit,
         sortBy: sortValue,
-        categoryId : selectedCategoryId,
+        categoryId: selectedCategoryId,
       };
 
       const [productResponse, offersResponse] = await Promise.all([
         axiosInstance.get('/user/products', { params }),
-        axiosInstance.get('/admin/catoffers'), 
+        axiosInstance.get('/admin/catoffers'),
       ]);
-  
-      // Extract data from the responses
+
       const { products: fetchedProducts, totalPages } = productResponse.data;
       const offers = offersResponse.data.products;
-      console.log(productResponse.data)
-      console.log(offers);
 
       const productsWithOffers = fetchedProducts.map((product) => {
         const offer = offers.find((offerItem) => offerItem._id === product._id);
-  
+
         if (offer) {
           return {
             ...product,
@@ -55,7 +52,7 @@ const ProductsUser = () => {
             discountType: offer.discountType,
           };
         }
-  
+
         return product;
       });
 
@@ -66,21 +63,21 @@ const ProductsUser = () => {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const response = await axiosInstance.get('/admin/getCat')
-        setCategory(response.data.categories)
+        const response = await axiosInstance.get('/admin/getCat');
+        setCategory(response.data.categories);
       } catch (error) {
-        console.log('error fetch cat in filter: ',error);
+        console.log('error fetch cat in filter: ', error);
       }
-    }
-    fetchCategory()
-  },[])
+    };
+    fetchCategory();
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, [page, sortValue, selectedCategoryId]); 
+  }, [page, sortValue, selectedCategoryId]);
 
   const handleSortChange = (event) => setSortValue(event.target.value);
 
@@ -88,14 +85,14 @@ const ProductsUser = () => {
     setSelectedCategoryId(categoryId);
     setPage(1);
   };
-  
+
   const handleSearchChange = (event) => setSearchQuery(event.target.value);
 
   useEffect(() => {
-      const filteredProducts = products.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setProducts(filteredProducts);
+    const filteredProducts = products.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setProducts(filteredProducts);
   }, [searchQuery, products]);
 
   const handlePageChange = (event, value) => setPage(value);
@@ -104,7 +101,7 @@ const ProductsUser = () => {
     setSearchQuery('');
     setSortValue('');
     setSelectedCategoryId('');
-    setPage(1); 
+    setPage(1);
     fetchProducts();
   };
 
@@ -123,6 +120,7 @@ const ProductsUser = () => {
           alignItems: 'center',
           gap: 2,
           marginBottom: '2rem',
+          flexWrap: 'wrap', // Added to handle responsiveness
         }}
       >
         {/* Search Bar */}
@@ -132,7 +130,7 @@ const ProductsUser = () => {
           value={searchQuery}
           onChange={handleSearchChange}
           sx={{
-            width: '300px',
+            width: { xs: '100%', sm: '300px' }, // Responsive width
             borderRadius: '30px',
             backgroundColor: '#f9f9f9',
             boxShadow: '0 3px 5px rgba(0,0,0,0.1)',
@@ -156,11 +154,10 @@ const ProductsUser = () => {
         <FormControl
           sx={{
             position: 'relative',
-            minWidth: 100,
+            minWidth: { xs: '100%', sm: '200px' }, // Responsive width
             '&:hover > .dropdown': { display: 'flex' },
           }}
         >
-          {/* Filter Button */}
           <Button
             sx={{
               textTransform: 'capitalize',
@@ -185,16 +182,17 @@ const ProductsUser = () => {
               position: 'absolute',
               top: '100%',
               left: 0,
-              width: '440px',
+              width: '100%',
               background: '#fff',
               border: '1px solid #ddd',
               borderRadius: '10px',
               zIndex: 10,
               display: 'none',
-              flexDirection: 'row', 
+              flexDirection: 'row',
               gap: '20px',
               padding: '15px',
               boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+              flexWrap: 'wrap', // Ensures dropdown stays responsive
             }}
           >
             {/* Dropdown Sections */}
@@ -296,7 +294,6 @@ const ProductsUser = () => {
           </Box>
         </FormControl>
 
-
         {/* Clear Filters Button */}
         <Button
           variant="text"
@@ -319,14 +316,12 @@ const ProductsUser = () => {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, // Responsive grid
           gap: '20px',
         }}
       >
         {products.length > 0 ? (
-          products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))
+          products.map((product) => <ProductCard key={product._id} product={product} />)
         ) : (
           <Typography>No products found.</Typography>
         )}

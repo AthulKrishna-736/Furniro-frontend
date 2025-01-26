@@ -24,7 +24,6 @@ const LandingPage = () => {
         const response = await axiosInstance.get("/user/featuredProducts");
         setProducts(response.data.products);
       } catch (err) {
-        console.error("Error fetching products:", err);
         setError("Failed to fetch products. Please try again later.");
       } finally {
         setLoading(false);
@@ -38,10 +37,7 @@ const LandingPage = () => {
   const fetchBanners = async () => {
     try {
       const response = await axiosInstance.get('/admin/getBanners')
-      console.log('successfull response got')
       setBanner(response?.data?.banner)
-      console.log('setban log',banner)
-      console.table(response.data?.banner)      
     } catch (error) {
       console.log('error while fetching',error)
     }
@@ -53,7 +49,7 @@ const LandingPage = () => {
 
       {/* Banner Section */}
       <Banner
-        image={banner.length > 0 && banner[0].bannerLocation == 'Home' ? banner[0].image : "https://via.placeholder.com/1200x500"}
+        image={banner.length > 0 && banner[0].bannerLocation == 'Home' ? banner[0].image : "Unavailable"}
         text="Choose the Best, Find Your Perfect Piece in Our Store."
       />
 
