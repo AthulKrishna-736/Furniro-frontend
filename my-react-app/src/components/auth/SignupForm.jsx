@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import { TextField, Button, Typography, Container, Box } from '@mui/material';
-import axiosInstance from '../../utils/axiosInstance'
-import { validateFname, validateLname, validateEmail, validatePass, validateFieldsReq } from '../../utils/validation'
+import React, { useEffect, useState } from 'react';
+import { TextField, Button, Typography, Container, Box, Grid } from '@mui/material';
+import axiosInstance from '../../utils/axiosInstance';
+import { validateFname, validateLname, validateEmail, validatePass, validateFieldsReq } from '../../utils/validation';
 import { useNavigate } from 'react-router-dom';
 import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 import OtpFormModal from './OtpForm';
-
 
 const SignUpForm = () => {
     const navigate = useNavigate();
@@ -14,259 +13,254 @@ const SignUpForm = () => {
     const [otpVerified, setOtpVerified] = useState(false);
 
     const [formData, setFormData] = useState({
-        firstName:'',
-        lastName:'',
-        email:'',
-        password:'',
-    })
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+    });
     const [errors, setErrors] = useState({});
-    const { firstName, lastName, email, password } = formData
+    const { firstName, lastName, email, password } = formData;
 
-    useEffect(()=>{
-        console.log('localstore in useEffect in singnup: ', localStorage)
-    },[])
-
-    useEffect(()=>{
-        if(otpVerified){
+    useEffect(() => {
+        if (otpVerified) {
             finalSubmit();
         }
-    },[otpVerified]);
+    }, [otpVerified]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-      
+
         setFormData((prevData) => ({
-          ...prevData,
-          [name]: value,
+            ...prevData,
+            [name]: value,
         }));
-      
-        // Clear errors for the current field
+
         if (errors[name]) {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: '',
-          }));
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                [name]: '',
+            }));
         }
-      
-        // Additional validation for password matching
+
         if (name === 'confirmPassword' || name === 'password') {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            confirmPassword: 
-              name === 'confirmPassword' && value !== formData.password
-                ? 'Passwords do not match'
-                : '',
-          }));
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                confirmPassword:
+                    name === 'confirmPassword' && value !== formData.password
+                        ? 'Passwords do not match'
+                        : '',
+            }));
         }
-      };
-      
-    const validateForm = ()=>{
-        // Check for required fields
+    };
+
+    const validateForm = () => {
         const fieldReqErrors = validateFieldsReq(formData);
         if (fieldReqErrors) {
             setErrors(fieldReqErrors);
             return false;
         }
 
-        //specific field error check
-        const newErrors = {}
+        const newErrors = {};
         newErrors.firstName = validateFname(firstName);
         newErrors.lastName = validateLname(lastName);
         newErrors.email = validateEmail(email);
         newErrors.password = validatePass(password);
-        setErrors(newErrors); //set all errors through validation
+        setErrors(newErrors);
 
-        //check if all fields are valid
         return Object.values(newErrors).every((error) => !error);
-    }
+    };
 
-    const handleSubmit = async(e)=>{
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if(!validateForm()) return; 
+        if (!validateForm()) return;
 
-        //user check before signup 
         try {
-            const checkuser = await axiosInstance.post('/user/checkUser', { email })
-            console.log('check user signup = ', checkuser)
-            console.log('localstorage in signup: ', localStorage)
+            const checkuser = await axiosInstance.post('/user/checkUser', { email });
+            console.log('check user signup = ', checkuser);
 
-            if(checkuser?.data?.message == 'User not found. Proceed to signup.'){
+            if (checkuser?.data?.message === 'User not found. Proceed to signup.') {
                 setOtpModalOpen(true);
                 return;
-            }else{
-                console.log('User already exists. Please login')
+            } else {
+                showErrorToast(checkuser.data?.message);
                 return;
             }
-        }catch(error){
+        } catch (error) {
             setOtpModalOpen(false);
             console.log(error?.response?.data?.message || 'An error occurred. Please try again later.');
             return;
         }
+    };
 
-    }
-    
     const finalSubmit = async () => {
-
         if (!otpVerified) {
             setOtpModalOpen(true);
             console.log('Please verify the OTP before signing up.');
             return;
-          }
+        }
 
         try {
             const response = await axiosInstance.post('/user/signup', formData);
-            console.log('signup res = ', response);
             showSuccessToast(response?.data?.message);
 
-            setTimeout(()=> navigate('/login'),1000);
-
+            setTimeout(() => navigate('/login'), 1000);
         } catch (error) {
-            console.log('error while signing up user', error); 
             showErrorToast(error.response?.data?.message);
         }
-    }
-    
-  return (
-    <Container maxWidth="xs">
-    <Box sx={{ mt: 8, textAlign: 'center' }}>
+    };
 
-        <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-            fontWeight: 'bold',
-            textAlign: 'center',
-            background: 'linear-gradient(to right, #FF7E5F, #FEB47B)', 
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            mb: 3,
-        }}
-        >
-        Signup
-        </Typography>
-
-        <form onSubmit={handleSubmit}>
-            <TextField
-                fullWidth
-                margin="normal"
-                label="First Name"
-                name="firstName"
-                value={firstName}
-                onChange={handleChange}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-            />
-            <TextField
-                fullWidth
-                margin="normal"
-                label="Last Name"
-                name="lastName"
-                value={lastName}
-                onChange={handleChange}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-            />
-            <TextField
-                fullWidth
-                margin="normal"
-                label="Email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={handleChange}
-                error={!!errors.email}
-                helperText={errors.email}
-            />
-            <TextField
-            fullWidth
-            margin="normal"
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            error={!!errors.password}
-            helperText={errors.password}
-            />
-            <TextField
-            fullWidth
-            margin="normal"
-            label="Confirm Password"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword}
-            />
-            <Button
-                type="submit"
-                variant="contained"
-                fullWidth
+    return (
+        <Container maxWidth="sm">
+            <Box sx={{ mt: 8, textAlign: 'center' }}>
+                <Typography
+                    variant="h4"
+                    gutterBottom
                     sx={{
-                    position: "relative",
-                    padding: "12px 20px",
-                    background: "#111", 
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    borderRadius: "10px",
-                    textTransform: "uppercase",
-                    border: "2px solid transparent",
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    boxShadow: "0 0 10px rgba(255, 255, 255, 0.2)",
-                    transition: "all 0.4s ease-in-out",
-                    "&:before": {
-                    content: '""',
-                    position: "absolute",
-                    top: "-5px",
-                    left: "-5px",
-                    right: "-5px",
-                    bottom: "-5px",
-                    background: "linear-gradient(45deg, #ff0080, #ff8c00, #ff0080)", // Neon colors
-                    zIndex: -1,
-                    borderRadius: "12px",
-                    boxShadow: "0 0 15px rgba(255, 0, 128, 0.7), 0 0 20px rgba(255, 140, 0, 0.7)", // Glowing neon effect
-                    opacity: 0,
-                    transition: "all 0.3s ease-in-out",
-                    },
-                    "&:hover": {
-                    background: "#333",
-                    color: "#00b3ff", 
-                    "&:before": {
-                        opacity: 1, 
-                        transform: "scale(1.1)", 
-                    },
-                    },
-                }}
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        background: 'linear-gradient(to right, #FF7E5F, #FEB47B)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        letterSpacing: '1.5px',
+                        textTransform: 'uppercase',
+                        mb: 3,
+                    }}
                 >
-                Signup
-            </Button>
-        </form>
+                    Signup
+                </Typography>
 
-        <Typography variant="body2" mt={2}>
-                Already have an account?{' '}
-            <Button onClick={() => navigate('/login')} color="primary">
-                Login
-            </Button>
-        </Typography>
+                <form onSubmit={handleSubmit}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                margin="normal"
+                                label="First Name"
+                                name="firstName"
+                                value={firstName}
+                                onChange={handleChange}
+                                error={!!errors.firstName}
+                                helperText={errors.firstName}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                margin="normal"
+                                label="Last Name"
+                                name="lastName"
+                                value={lastName}
+                                onChange={handleChange}
+                                error={!!errors.lastName}
+                                helperText={errors.lastName}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                margin="normal"
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={email}
+                                onChange={handleChange}
+                                error={!!errors.email}
+                                helperText={errors.email}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                margin="normal"
+                                label="Password"
+                                name="password"
+                                type="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                error={!!errors.password}
+                                helperText={errors.password}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                margin="normal"
+                                label="Confirm Password"
+                                name="confirmPassword"
+                                type="password"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                error={!!errors.confirmPassword}
+                                helperText={errors.confirmPassword}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth
+                                sx={{
+                                    position: "relative",
+                                    padding: "12px 20px",
+                                    background: "#111",
+                                    color: "#fff",
+                                    fontWeight: "bold",
+                                    fontSize: "16px",
+                                    borderRadius: "10px",
+                                    textTransform: "uppercase",
+                                    border: "2px solid transparent",
+                                    cursor: "pointer",
+                                    overflow: "hidden",
+                                    boxShadow: "0 0 10px rgba(255, 255, 255, 0.2)",
+                                    transition: "all 0.4s ease-in-out",
+                                    "&:before": {
+                                        content: '""',
+                                        position: "absolute",
+                                        top: "-5px",
+                                        left: "-5px",
+                                        right: "-5px",
+                                        bottom: "-5px",
+                                        background: "linear-gradient(45deg, #ff0080, #ff8c00, #ff0080)",
+                                        zIndex: -1,
+                                        borderRadius: "12px",
+                                        boxShadow: "0 0 15px rgba(255, 0, 128, 0.7), 0 0 20px rgba(255, 140, 0, 0.7)",
+                                        opacity: 0,
+                                        transition: "all 0.3s ease-in-out",
+                                    },
+                                    "&:hover": {
+                                        background: "#333",
+                                        color: "#00b3ff",
+                                        "&:before": {
+                                            opacity: 1,
+                                            transform: "scale(1.1)",
+                                        },
+                                    },
+                                }}
+                            >
+                                Signup
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </form>
 
-      {/* OTP Modal */}
-      <OtpFormModal
-        open={otpModalOpen}
-        onClose={() => setOtpModalOpen(false)}
-        setOtpVerified={setOtpVerified}
-        email={email}
-        isSignup={true}
-      />
+                <Typography variant="body2" mt={2}>
+                    Already have an account?{' '}
+                    <Button onClick={() => navigate('/login')} color="primary">
+                        Login
+                    </Button>
+                </Typography>
 
-    </Box>
-</Container>
-  )
-}
+                <OtpFormModal
+                    open={otpModalOpen}
+                    onClose={() => setOtpModalOpen(false)}
+                    setOtpVerified={setOtpVerified}
+                    email={email}
+                    isSignup={true}
+                />
+            </Box>
+        </Container>
+    );
+};
 
 export default SignUpForm;

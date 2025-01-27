@@ -24,13 +24,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log('error in interceptor')
     const { status, data } = error?.response;
     console.log('status code and data: ', [status, data, data?.message]);
 
     if (error.response && error.response.status == 403 && error.response?.data?.message == 'User is blocked.') {
       const { isBlocked, message } = error.response?.data;
-      console.log('checking the error and redirecting...')
 
       if (window.location.pathname == '/login' && isBlocked) {
         showErrorToast('Login is restricted')

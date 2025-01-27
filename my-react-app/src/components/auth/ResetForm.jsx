@@ -11,8 +11,8 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Close } from '@mui/icons-material';
 import { validatePass } from '../../utils/validation';
-import { toast } from 'react-toastify';
 import axiosInstance from '../../utils/axiosInstance';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 
 const ResetForm = ({ open, onClose, email }) => {
@@ -56,13 +56,11 @@ const ResetForm = ({ open, onClose, email }) => {
 
     try {
       const response = await axiosInstance.patch('/user/resetPass', { email, password });
-      console.log('Password reset response:', response?.data);
       navigate('/login')
-      toast.success(response?.data?.message)
+      showSuccessToast(response?.data?.message)
       onClose();
     } catch (error) {
-      console.error('Error resetting password:', error);
-      toast.error(error.response?.data?.message);
+      showErrorToast(error.response?.data?.message);
     }
 
     onClose();

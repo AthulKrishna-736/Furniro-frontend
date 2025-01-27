@@ -1,289 +1,317 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Box, Typography, Grid } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { showErrorToast, showInfoToast, showSuccessToast } from '../../utils/toastUtils';
+import { DeleteOutline } from '@mui/icons-material';
 
 const Cart = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const userId = localStorage.getItem('userId');
 
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [loadingState, setLoadingState] = useState({});
 
-  const userId = localStorage.getItem('userId');
-  
   const fetchCart = async () => {
     try {
-        const response = await axiosInstance.get(`/user/getCart/${userId}`);
-        setCartItems(response?.data?.cart?.items || []);
-        setCartTotal(response.data.cart?.totalPrice);
-        console.log('cart res : ', response.data)
+      const { data } = await axiosInstance.get(`/user/getCart/${userId}`);
+      setCartItems(data.cart?.items || []);
+      setCartTotal(data.cart?.totalPrice || 0);
     } catch (error) {
-        console.error('error fetching cart items: ', error);
+      console.error('Error fetching cart items:', error);
     }
-    }
+  };
+  useEffect(() => {
+    fetchCart();
+  }, [userId]);
 
-    useEffect(()=>{
-        fetchCart();
-    },[])
-
-
-  const handleRemoveItem = async(id) => {
+  const handleCartUpdate = async (endpoint, payload = {}, callback) => {
     try {
-        console.log('response going to remove the');
-        const response = await axiosInstance.delete(`/user/deleteItem/${id}`);
-        showSuccessToast(response?.data?.message);
-        console.log(`Item with ID: ${id} removed successfully`);
-    
-        fetchCart();
-      } catch (error) {
-        console.error(`Failed to remove item with ID: ${id}`, error);
-      }
+      await axiosInstance[endpoint.method](endpoint.url, payload);
+      callback && callback();
+    } catch (error) {
+      showErrorToast(error.response?.data?.message || 'An error occurred');
+    }
   };
 
-  const handleQuantityChange = async (id, action) => {
-    setLoadingState((prev)=> ({ ...prev, [id]: true }));
-    try {
-      const response = await axiosInstance.patch(`/user/updateQuantity/${userId}`, {
-        itemId: id, 
-        action: action, 
-      });
-    
+  const handleRemoveItem = (id) =>
+    handleCartUpdate({ method: 'delete', url: `/user/deleteItem/${id}` }, {}, () => {
+      showSuccessToast('Item removed successfully');
       fetchCart();
-    } catch (error) {
-      showErrorToast(error.response?.data?.message)
-    } finally {
-      setLoadingState((prev)=> ({ ...prev, [id]: false}));
-    }
-  };
+    });
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.productId.salesPrice * item.quantity), 0);
+  const handleQuantityChange = (id, action) => {
+    setLoadingState((prev) => ({ ...prev, [id]: true }));
+    handleCartUpdate(
+      { method: 'patch', url: `/user/updateQuantity/${userId}` },
+      { itemId: id, action },
+      fetchCart()
+    ).finally(() => setLoadingState((prev) => ({ ...prev, [id]: false })));
   };
-
 
   const handleCheckout = async () => {
     try {
-      const response = await axiosInstance.get(`/user/getCart/${userId}`)
-      console.log('response block check: ', response.data)
-  
-      if (response.data.blockedItems && response.data.blockedItems.length > 0) {
-        const blockedItemNames = response.data.blockedItems.map(item => item.name).join(', ');
-        showInfoToast(`Blocked items in your cart: ${blockedItemNames}. Please remove them to proceed.`,);
-        return; 
+      const { data } = await axiosInstance.get(`/user/getCart/${userId}`);
+      if (data.blockedItems?.length) {
+        showInfoToast(`Blocked items in your cart: ${data.blockedItems.map((item) => item.name).join(', ')}`);
+        return;
       }
-  
       navigate('/checkout');
     } catch (error) {
-      console.error('Error fetching cart or handling checkout:', error);
-      showErrorToast('An error occurred while checking the cart. Please try again.');
+      showErrorToast('Error during checkout. Please try again.');
     }
   };
-  
 
   return (
-    <Box sx={{ display: 'flex', padding: '20px' }}>
-      {/* Product Listing Section (Left side - 70%) */}
-      <Box
-        sx={{
-          width: '70%',
-          marginRight: '20px',
-          overflowY: 'auto',
-          maxHeight: '350px',
-          paddingRight: '10px',
-          '&::-webkit-scrollbar': {
-            width: '6px', 
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#000', 
-            borderRadius: '10px', 
-          },
-          '&::-webkit-scrollbar-track': {
-            backgroundColor: '#f0f0f0', 
-          },
-        }}
-      >    
-      {cartItems.length === 0 ? (
-        <Box
-          sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '20px',
-              backgroundColor: '#fff',  
-              borderRadius: '5px',
-              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-              color: '#333',  
-              fontSize: '24px',
-              fontWeight: 'bold',
-              fontFamily: 'Arial, Helvetica, sans-serif', 
-              border: '1px solid #ddd',
-              marginBottom: '20px',
-              textAlign: 'center',
-          }}
-      >
-          Oops, your cart is empty!
-      </Box>
-
-        ) : (
-        cartItems.map((item) => (
-            <Box
-                key={item._id}
+    <Box sx={{ padding: '20px' }}>
+      <Grid container spacing={2} sx={{ flexDirection: { xs: 'column', lg: 'row' } }}>
+        <Grid item xs={12} lg={8}>
+          <Box
+            sx={{
+              overflowY: 'auto',
+              maxHeight: { xs: 'auto', lg: '60vh' },
+              pr: 1,
+              '&::-webkit-scrollbar': { width: '6px' },
+              '&::-webkit-scrollbar-thumb': { backgroundColor: '#000', borderRadius: '10px' },
+              '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' },
+            }}
+          >
+            {cartItems.length === 0 ? (
+              <Typography
                 sx={{
-                    display: 'flex',
-                    marginBottom: '20px',
-                    border: '1px solid #ddd',
-                    padding: '10px',
-                    borderRadius: '5px',
-                    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                    backgroundColor: '#f9f9f9',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '20px',
+                  backgroundColor: '#fff',
+                  borderRadius: '5px',
+                  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
                 }}
-            >
-                <img
-                    src={item.productId.images[0]} 
-                    alt={item.productId.name}
-                    style={{
-                        width: '100px',
-                        height: '100px',
-                      objectFit: 'cover',
-                      marginRight: '20px',
-                    }}
-                />
-              <Box sx={{ flex: 1, padding: '10px' }}>
-                {/* Parent Box */}
+              >
+                Oops, your cart is empty!
+              </Typography>
+            ) : (
+              cartItems.map((item) => (
                 <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ gap: '8px' }}
+                  key={item._id}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    mb: 2,
+                    border: '1px solid #ddd',
+                    p: 2,
+                    borderRadius: '8px',
+                    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                    backgroundColor: '#f0f7fd', // Light warm tone
+                  }}
                 >
-                  {/* Product Name */}
-                  <Box sx={{ flex: 2, textAlign:'start' }}>
-                    <Typography variant="h6">{item.productId.name}</Typography>
-                  </Box>
-
-                  {/* Quantity Control Buttons */}
+                  {/* Product Image */}
                   <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{ flex: 1 }}
-                  >
-                    <Button
-                      onClick={() => handleQuantityChange(item._id, 'decrease')}
-                      disabled={loadingState[item._id]}
-                      sx={{
-                        width: '40px',
-                        height: '40px',
-                        border: '1px solid #ddd',
-                        backgroundColor: '#fff',
-                        fontSize: '20px',
-                      }}
-                    >
-                      -
-                    </Button>
-                    <Typography sx={{ margin: '0 15px', fontSize: '22px' }}>
-                      {item.quantity}
-                    </Typography>
-                    <Button
-                      onClick={() => handleQuantityChange(item._id, 'increase')}
-                      disabled={loadingState[item._id]}
-                      sx={{
-                        width: '40px',
-                        height: '40px',
-                        border: '1px solid #ddd',
-                        backgroundColor: '#fff',
-                        fontSize: '20px',
-                      }}
-                    >
-                      +
-                    </Button>
-                  </Box>
+                    component="img"
+                    src={item.productId.images[0]}
+                    alt={item.productId.name}
+                    sx={{
+                      height: { xs: '120px', sm: '150px' }, // Responsive height
+                      width: { xs: '100%', sm: 'auto' }, // Full width on small screens
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      mb: { xs: 1, sm: 0 },
+                      mr: { xs: 0, sm: 2 },
+                    }}
+                  />
 
-                  {/* Total Price */}
-                  <Box sx={{ flex: 1, textAlign: 'right' }}>
-                    <Typography variant="h6">
+                  {/* Product Details */}
+                  <Box sx={{ flex: 1 }}>
+                    {/* Product Name */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 500,
+                        textAlign: { xs: 'center', sm: 'left' }, // Centered on smaller screens
+                        mb: 1,
+                      }}
+                    >
+                      {item.productId.name}
+                    </Typography>
+
+                    {/* Quantity Controls and Price Info */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: { xs: 1, sm: 2 },
+                        mt: 1,
+                      }}
+                    >
+                      {/* Quantity Controls */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: { xs: 'center', sm: 'flex-start' }, // Centered on small screens
+                          gap: 1,
+                        }}
+                      >
+                        <Button
+                          onClick={() => handleQuantityChange(item._id, 'decrease')}
+                          disabled={loadingState[item._id]}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            border: '1px solid #ddd',
+                            color: '#000',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          -
+                        </Button>
+                        <Typography sx={{ fontSize: 18, fontWeight: 500 }}>{item.quantity}</Typography>
+                        <Button
+                          onClick={() => handleQuantityChange(item._id, 'increase')}
+                          disabled={loadingState[item._id]}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            border: '1px solid #ddd',
+                            color: '#000',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          +
+                        </Button>
+                      </Box>
+
+                      {/* Price Info */}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: { xs: 'center', sm: 'flex-end' }, // Centered on smaller screens
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 16,
+                            fontWeight: 500,
+                            color: '#555',
+                          }}
+                        >
+                          Price: ₹{item.price.toFixed(2)}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 20,
+                            fontWeight: 600,
+                            mt: { xs: 0.5, sm: 0 }, // Space adjustment for small screens
+                          }}
+                        >
+                          Total: ₹{(item.price * item.quantity).toFixed(2)}
+                        </Typography>
+                      </Box>
+
+                      {/* Remove Button */}
+                      <Button
+                        onClick={() => handleRemoveItem(item._id)}
+                        sx={{
+                          color: '#EF5350',
+                          mt: { xs: 1, sm: 0 }, // Spacing adjustment for small screens
+                        }}
+                      >
+                        <DeleteOutline />
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+              ))
+            )}
+          </Box>
+        </Grid>
+
+        {location.pathname === '/cart' && (
+          <Grid item xs={12} lg={4}>
+            <Box
+              sx={{
+                border: '1px solid #ddd',
+                p: 3,
+                borderRadius: '8px',
+                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+                backgroundColor: '#fff',
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                Cart Summary
+              </Typography>
+
+              {/* Product Details */}
+              <Box sx={{ mt: 2 }}>
+                {cartItems.map((item) => (
+                  <Box
+                    key={item._id}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                      p: 2,
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 16,
+                        fontWeight: 500,
+                        color: '#333',
+                        maxWidth: '60%',
+                        wordWrap: 'break-word',
+                      }}
+                    >
+                      {item.productId.name} - {item.price} x {item.quantity}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 16,
+                        fontWeight: 500,
+                        color: '#555',
+                      }}
+                    >
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </Typography>
                   </Box>
-                </Box>
-
-                {/* Sales Price */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: '20px',
-                    textDecoration: 'line-through',
-                    textAlign:'start',
-                    color: '#777',
-                  }}
-                >
-                  ₹{item.productId.salesPrice}
-                </Typography>
+                ))}
               </Box>
 
-            <Button
-              onClick={() => handleRemoveItem(item._id)} 
-              sx={{
-                color: '#EF5350',
-                cursor: 'pointer',
-                background: 'none',
-                border: 'none',
-                fontSize: '16px',
-                minWidth: '0',
-                padding: '0',
-              }}
-            >
-          <DeleteIcon />
-          </Button>
-      </Box>
-         ))
-      )}
-    </Box>
+              {/* Total Price */}
+              <Typography variant="h6" sx={{ mt: 2, fontWeight: 600 }}>
+                Total Price: ₹{cartTotal}
+              </Typography>
 
-      {/* Cart Summary Section (Right side - 30%) */}
-      {location.pathname === '/cart' && (
-        <Box sx={{ 
-          width: '30%', 
-          border: '1px solid #ddd', 
-          padding: '20px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'flex-end',  
-          height: '230px' 
-        }}>
-          <Typography variant="h4" gutterBottom>
-            Cart Total
-          </Typography>
-
-          <Box sx={{ marginTop: 'auto' }}>
-            <Typography variant="h6">
-              Total Price: ₹{cartTotal}
-            </Typography>
-            <Button
-              onClick={handleCheckout}
-              sx={{
-                backgroundColor: 'black',
-                color: 'white',
-                padding: '10px 20px',
-                border: 'none',
-                cursor: 'pointer',
-                width: '100%',
-                textAlign: 'center',
-                borderRadius: '5px',
-                fontSize: '16px',
-                marginTop: '10px',
-              }}
-            >
-              Go to Checkout
-            </Button>
-          </Box>
-        </Box>
-      )}
-
+              {/* Checkout Button */}
+              <Button
+                onClick={handleCheckout}
+                sx={{
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  p: 2,
+                  mt: 2,
+                  width: '100%',
+                  borderRadius: 1,
+                  fontSize: 16,
+                  '&:hover': { backgroundColor: '#333' },
+                }}
+              >
+                Go to Checkout
+              </Button>
+            </Box>
+          </Grid>
+        )}
+      </Grid>
     </Box>
   );
 };

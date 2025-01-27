@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Select, MenuItem, Box, Pagination, Modal, Typography } from '@mui/material';
-import { LocationOn, Payment, CalendarToday } from '@mui/icons-material';
+import { Payment, CalendarToday, LocationOn } from '@mui/icons-material';
 
 const validStatusTransitions = {
   Pending: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
@@ -39,17 +39,18 @@ const OrderTable = ({ orders, handleSaveStatus, handleReturnRequest }) => {
   const handleReturnAction = (orderId, productId, action) => handleReturnRequest(orderId, productId, action);
 
   return (
-    <Box>
-      <TableContainer component={Paper} sx={{ marginTop: '20px', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)', borderRadius: '8px' }}>
+    <Box sx={{ padding: '20px' }}>
+      <TableContainer component={Paper} sx={{ boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.1)', borderRadius: '12px', overflow: 'hidden' }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Order ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>User Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Total Price</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Actions</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Details</TableCell>
+            <TableRow sx={{ backgroundColor: '#81d4fa', color: 'white' }}>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>Order ID</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>User Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>Total Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>Status</TableCell>              
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242', textAlign: 'center' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#424242' }}>Details</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -57,23 +58,61 @@ const OrderTable = ({ orders, handleSaveStatus, handleReturnRequest }) => {
               const currentStatus = order.status;
               const tempStatus = statusUpdates[order.orderId] || currentStatus;
               return (
-                <TableRow key={order.orderId} hover>
+                <TableRow key={order.orderId} hover sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}>
                   <TableCell>{order.orderId}</TableCell>
                   <TableCell>{order.userName}</TableCell>
                   <TableCell>₹{order.finalPrice}</TableCell>
                   <TableCell>
-                    <Select value={tempStatus} onChange={(e) => handleStatusChange(order.orderId, e.target.value)} sx={{ minWidth: '120px', fontSize: '12px' }}>
+                    <Select
+                      value={tempStatus}
+                      onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
+                      sx={{
+                        minWidth: '150px',
+                        fontSize: '14px',
+                        '& .MuiSelect-icon': { color: '#1976d2' },
+                        '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: '#f5f5f5' },
+                        '& .MuiSelect-root': { padding: '6px 10px' }
+                      }}
+                    >
                       <MenuItem disabled value={currentStatus} sx={{ color: 'gray' }}>{currentStatus}</MenuItem>
                       {getAvailableStatuses(currentStatus).map((status) => (
-                        <MenuItem key={status} value={status} sx={{ fontSize: '12px', color: status === 'Cancelled' ? 'red' : 'inherit' }}>{status}</MenuItem>
+                        <MenuItem key={status} value={status} sx={{ fontSize: '12px', color: status === 'Cancelled' ? 'red' : 'inherit' }}>
+                          {status}
+                        </MenuItem>
                       ))}
                     </Select>
                   </TableCell>
+                  <TableCell>{order.status}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>
-                    <Button onClick={() => handleSave(order.orderId)} disabled={!statusUpdates[order.orderId]} sx={{ backgroundColor: statusUpdates[order.orderId] ? '#4CAF50' : 'gray', color: 'white', fontSize: '12px', padding: '6px 12px', '&:hover': { backgroundColor: '#45a049' } }}>Save Status</Button>
+                    <Button
+                      onClick={() => handleSave(order.orderId)}
+                      disabled={!statusUpdates[order.orderId]}
+                      sx={{
+                        backgroundColor: statusUpdates[order.orderId] ? '#4CAF50' : 'gray',
+                        color: 'white',
+                        fontSize: '12px',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        '&:hover': { backgroundColor: '#45a049' }
+                      }}
+                    >
+                      Save Status
+                    </Button>
                   </TableCell>
                   <TableCell>
-                    <Button variant="contained" onClick={() => handleOpenModal(order)} sx={{ fontSize: '12px', backgroundColor: '#1976d2', color: 'white' }}>Details</Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleOpenModal(order)}
+                      sx={{
+                        fontSize: '12px',
+                        backgroundColor: '#1976d2',
+                        color: 'white',
+                        padding: '6px 12px',
+                        '&:hover': { backgroundColor: '#1565c0' }
+                      }}
+                    >
+                      Details
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
@@ -96,12 +135,15 @@ const OrderTable = ({ orders, handleSaveStatus, handleReturnRequest }) => {
               <Box sx={{ marginBottom: 3, maxHeight: 200, overflowY: 'auto' }}>
                 {selectedOrder.orderedItems.map((item) => (
                   <Box key={item.productId} sx={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-                    <img src={item.productImage} alt={item.productName} style={{ width: '120px', height: '120px', borderRadius: '10px', objectFit: 'cover' }} />
+                    <img
+                      src={item.productImage}
+                      alt={item.productName}
+                      style={{ width: '120px', height: '120px', borderRadius: '10px', objectFit: 'cover' }}
+                    />
                     <Box>
                       <Typography sx={{ fontWeight: 'bold', fontSize: '18px' }}>{item.productName}</Typography>
                       <Typography sx={{ fontSize: '16px' }}>₹{item.pricePerUnit} x {item.quantity} = ₹{item.pricePerUnit * item.quantity}</Typography>
-
-                      {/* Displaying return request details only if present */}
+                      {/* Displaying return request details */}
                       <Typography
                         sx={{
                           fontSize: '14px',
@@ -120,15 +162,6 @@ const OrderTable = ({ orders, handleSaveStatus, handleReturnRequest }) => {
                           }`
                           : 'Return Request: Not Requested'}
                       </Typography>
-
-
-                      {/* Handling the Cancelled product status */}
-                      {item.status === 'Cancelled' && (
-                        <Typography sx={{ fontSize: '14px', color: 'red' }}>
-                          Product Status: Cancelled
-                        </Typography>
-                      )}
-
                       {/* Show buttons for accepting or rejecting returns only if status is 'Pending' */}
                       {item.returnRequest?.status === 'Pending' && (
                         <Box sx={{ marginTop: 1 }}>

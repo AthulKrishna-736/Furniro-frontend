@@ -3,8 +3,8 @@ import { Box, Button, TextField, Typography, CssBaseline } from '@mui/material';
 import OtpFormModal from './OtpForm';
 import { validateEmail } from '../../utils/validation'; // Assuming validateEmail is imported from utils
 import axiosInstance from '../../utils/axiosInstance';
-import { toast } from 'react-toastify';
 import ResetForm from './ResetForm';
+import { showErrorToast } from '../../utils/toastUtils';
 
 const ForgotPass = () => {
   const [email, setEmail] = useState('');
@@ -32,15 +32,13 @@ const ForgotPass = () => {
       setError(''); 
 
       const response = await axiosInstance.post('/user/forgotPass', { email });
-  
-      console.log('response forgot = ', response?.data);
-      
+        
       setOtpModalOpen(true); 
       setError(''); 
       
     } catch (error) {
       console.error('Error during forgot password request:', error);
-      toast.error(error.response?.data?.message)
+      showErrorToast(error.response?.data?.message)
     }
   };
   

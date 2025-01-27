@@ -93,7 +93,7 @@ const ProductsUser = () => {
       product.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setProducts(filteredProducts);
-  }, [searchQuery, products]);
+  }, [searchQuery]);
 
   const handlePageChange = (event, value) => setPage(value);
 

@@ -13,11 +13,8 @@ const OrdersPage = () => {
   const fetchOrders = async () => {
     try {
       const response = await axiosInstance.get('/admin/getOrders');
-      console.log('res fetchorder: ', response.data?.orders)
       if (response?.data?.orders) {
         setOrders(response.data.orders);
-      } else {
-        console.log('No orders found.');
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -33,7 +30,6 @@ const OrdersPage = () => {
         orderId,
         status: newStatus,
       });
-      console.log('res of orderupdate: ', response.data)
 
       if (response?.status === 200) {
         showSuccessToast(response.data?.message)
@@ -52,7 +48,6 @@ const OrdersPage = () => {
 
   const handleReturnRequest = async (orderId, productId, action) => {
     try {
-      console.log('aceept or reject check: ', orderId, productId, action)
       const response = await axiosInstance.patch('/admin/returnProduct', {
         orderId,
         productId,
@@ -61,7 +56,6 @@ const OrdersPage = () => {
       showSuccessToast(response.data.message);
       fetchOrders();
     } catch (error) {
-      console.log('error happened: ', error)
       showErrorToast(error.response.data.message);
     }
   }

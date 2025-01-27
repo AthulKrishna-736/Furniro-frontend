@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Typography, Box, Modal, IconButton, Button, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axiosInstance from '../../utils/axiosInstance';
-import { toast } from 'react-toastify';
+import { showErrorToast, showSuccessToast } from '../../utils/toastUtils';
 
 const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -29,15 +29,11 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
   };
 
   useEffect(() => {
-    console.info('loaded otp form but not opened....')
     if (open) {
-      console.warn('otp this is opened')
       if (isSignup) {
-        console.log('for signup user')
         startTimer(); 
         requestOtp();
       } else {
-        console.log('for forgot password')
         startTimer();
         requestOtp();
       }
@@ -48,10 +44,10 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
     try {
       const response = await axiosInstance.post('/user/createOtp', { email, isSignup: isSignup });
       console.log('OTP sent:', response?.data);
-      toast.success(response?.data?.message);
+      showSuccessToast(response?.data?.message);
     } catch (error) {
       console.error('Error while requesting OTP:', error);
-      toast.error('Failed to send OTP. Please try again.');
+      showErrorToast('Failed to send OTP. Please try again.');
     }
   };
 
@@ -99,8 +95,7 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
     try {
       const response = await axiosInstance.post('/user/otpVerify', { email, otp: otpString });
       if (response.data.success) {
-        console.log('OTP verified successfully');
-        toast.success('OTP verified successfully');
+        showSuccessToast(response.data.message || 'OTP verified successfully');
         setOtpVerified(true);
         setOtp(['', '', '', '', '', '']);
         onClose();

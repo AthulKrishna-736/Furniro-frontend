@@ -13,7 +13,6 @@ const GoogleAuth = () => {
           credential: response.credential,
         });
 
-        console.log('google res = ', res.data)
         const { userId, userEmail } = res.data;
 
         localStorage.setItem('userId', userId);

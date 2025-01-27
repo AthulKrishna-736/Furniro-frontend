@@ -12,7 +12,6 @@ const SignUpPage = () => {
   const fetchBanners = async () => {
     try {
       const response = await axiosInstance.get('/admin/getBanners');
-      console.log('ban res on log = ', response?.data?.banner);
       setBgImages(response?.data?.banner);
     } catch (error) {
       console.log('Error while fetching banners', error);

@@ -22,8 +22,8 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
-  const [mainImage, setMainImage] = useState(''); 
-  const [zoomStyle, setZoomStyle] = useState({}); 
+  const [mainImage, setMainImage] = useState('');
+  const [zoomStyle, setZoomStyle] = useState({});
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const ProductDetail = () => {
         const { product, recommendedProducts } = response.data;
         setProduct(product);
         setRecommendedProducts(recommendedProducts);
-        setMainImage(product.images[0]); 
+        setMainImage(product.images[0]);
       } catch (error) {
         console.error('Error fetching product details:', error);
       } finally {
@@ -61,23 +61,23 @@ const ProductDetail = () => {
     });
   };
 
-  const handleAddToCart = async()=>{
+  const handleAddToCart = async () => {
     try {
       const response = await axiosInstance.post('/user/cart', { userId, productId, quantity: 1 });
       showSuccessToast(response.data?.message);
     } catch (error) {
       showErrorToast(error.response?.data?.message);
     }
-  }
+  };
 
-  const handleAddToWishlist = async()=>{
+  const handleAddToWishlist = async () => {
     try {
       const response = await axiosInstance.post('/user/addWishlist', { userId, productId });
-      showSuccessToast(response?.data?.message)
+      showSuccessToast(response?.data?.message);
     } catch (error) {
-      showErrorToast(error?.response?.data?.message)
+      showErrorToast(error?.response?.data?.message);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -115,40 +115,28 @@ const ProductDetail = () => {
       <Box
         sx={{
           display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'center',
-          gap: '100px',
-          alignItems: 'center',
+          gap: '40px',
+          alignItems: { xs: 'flex-start', md: 'center' },
           marginBottom: '40px',
         }}
       >
         {/* Image Section */}
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: '40px' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {product.images.slice(0, 4).map((image, index) => (
-              <Box
-                key={index}
-                component="img"
-                src={image}
-                alt={`Product ${index + 1}`}
-                onClick={() => setMainImage(image)}
-                sx={{
-                  width: '80px',
-                  height: '80px',
-                  objectFit: 'cover',
-                  cursor: 'pointer',
-                  border: mainImage === image ? '3px solid #1976d2' : '2px solid #ddd', // Highlight selected
-                  borderRadius: '5px',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-              />
-            ))}
-          </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '20px',
+          }}
+        >
           <Box
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             sx={{
-              width: '400px',
-              height: '400px',
+              width: '300px',
+              height: '300px',
               border: '2px solid #ddd',
               borderRadius: '5px',
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
@@ -159,74 +147,96 @@ const ProductDetail = () => {
               cursor: 'zoom-in',
             }}
           />
+          <Box
+            sx={{
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'center',
+            }}
+          >
+            {product.images.slice(0, 4).map((image, index) => (
+              <Box
+                key={index}
+                component="img"
+                src={image}
+                alt={`Product ${index + 1}`}
+                onClick={() => setMainImage(image)}
+                sx={{
+                  width: '60px',
+                  height: '60px',
+                  objectFit: 'cover',
+                  cursor: 'pointer',
+                  border: mainImage === image ? '3px solid #1976d2' : '2px solid #ddd',
+                  borderRadius: '5px',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              />
+            ))}
+          </Box>
         </Box>
 
         {/* Product Details */}
         <Box sx={{ flex: 1 }}>
-          
           <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
             {product.name}
           </Typography>
-
           <Typography variant="h4" sx={{ color: 'green', marginBottom: '10px' }}>
             ₹{product.salesPrice}
           </Typography>
-
           <Typography
             variant="body1"
             sx={{ color: product.stockQuantity > 0 ? 'blue' : 'red', marginBottom: '10px' }}
           >
             {product.stockQuantity > 0 ? `In Stock (${product.stockQuantity})` : 'Out of Stock'}
           </Typography>
-
           <Typography sx={{ marginBottom: '20px' }}>{product.description}</Typography>
 
           {/* Buttons */}
           <Box sx={{ display: 'flex', gap: '10px' }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={handleAddToCart}
-            startIcon={<ShoppingCartIcon />}
-            sx={{
-              borderRadius: '30px',
-              padding: '12px 30px',
-              textTransform: 'none',
-              fontSize: '16px',
-              fontWeight: 'normal',
-              borderColor: '#1976d2', 
-              color: '#1976d2',       
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: '#1976d2', 
-                color: 'white',            
-              },
-            }}
-          >
-            Add to Cart
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleAddToWishlist}
-            startIcon={<FavoriteIcon />}
-            sx={{
-              borderRadius: '30px',
-              padding: '12px 30px',
-              textTransform: 'none',
-              fontSize: '16px',
-              fontWeight: 'normal',
-              borderColor: '#e91e63', 
-              color: '#e91e63',       
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: '#e91e63', 
-                color: 'white',           
-              },
-            }}
-          >
-            Add to Wishlist
-          </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAddToCart}
+              startIcon={<ShoppingCartIcon />}
+              sx={{
+                borderRadius: '30px',
+                padding: '12px 30px',
+                textTransform: 'none',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                borderColor: '#1976d2',
+                color: '#1976d2',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: '#1976d2',
+                  color: 'white',
+                },
+              }}
+            >
+              Add to Cart
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleAddToWishlist}
+              startIcon={<FavoriteIcon />}
+              sx={{
+                borderRadius: '30px',
+                padding: '12px 30px',
+                textTransform: 'none',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                borderColor: '#e91e63',
+                color: '#e91e63',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: '#e91e63',
+                  color: 'white',
+                },
+              }}
+            >
+              Add to Wishlist
+            </Button>
           </Box>
         </Box>
       </Box>

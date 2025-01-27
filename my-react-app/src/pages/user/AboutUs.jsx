@@ -30,7 +30,7 @@ const AboutUs = () => {
                     padding: { xs: 2, sm: 4 },
                     minHeight: '100vh',
                     background: 'linear-gradient(135deg, #f9fafb, #ffffff)', // Elegant white theme
-                    color: '#4a4a4a', // Subtle text color
+                    color: '#4a4a4a', 
                 }}
             >
                 <Typography
