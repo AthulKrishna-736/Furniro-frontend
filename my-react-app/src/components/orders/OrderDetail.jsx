@@ -36,7 +36,6 @@ const OrderDetail = () => {
     try {
       const response = await axiosInstance.get(`/user/getOrder/${userId}?page=${page}`);
       const { orders, pagination } = response.data;
-      console.log('check order: ', orders)
       setOrders(orders);
       setPagination(pagination);
     } catch (error) {
@@ -60,7 +59,6 @@ const OrderDetail = () => {
         description,
         orderId,
       })
-      console.log('response of wallet promise: ', response.data)
     } catch (error) {
       console.log('error updating the cart: ', error.response.data?.message)
     }
@@ -75,28 +73,18 @@ const OrderDetail = () => {
       showSuccessToast(response.data?.message);
 
       if (payment == 'COD') {
-        console.log('cod this worked')
         if (status == 'Delivered') {
-          console.log('matched delivered so amount crediting')
           await updateWallet(
             totalPrice,
             'credit',
             `Refund for cancelled Order ID: ${orderId}`,
             orderId,
           )
-          console.log('amount credited')
         }
         fetchOrderDetails();
-        console.log('cod is not delivered so it just cancelled here..')
         return;
       }
-      console.log('other payments than cod amount crediting here')
-      await updateWallet(
-        totalPrice,
-        'credit',
-        `Refund for cancelled Order ID: ${orderId}`,
-        orderId,
-      )
+
       fetchOrderDetails();
     } catch (error) {
       showErrorToast(error.response?.data?.message);
@@ -118,7 +106,6 @@ const OrderDetail = () => {
       )
       fetchOrderDetails();
     } catch (error) {
-      console.log('return error', error)
       showErrorToast(error.response?.data?.message);
     }
   };
@@ -132,7 +119,6 @@ const OrderDetail = () => {
       fetchOrderDetails();
       showSuccessToast(response.data.message);
     } catch (error) {
-      console.log('error happens while cancelling the order: ', error)
       showErrorToast(error.response.data.message)
     }
   }
@@ -158,8 +144,6 @@ const OrderDetail = () => {
       cancelProduct: 'Are you sure you want to cancel this product?',
       returnProduct: 'Are you sure you want to return this product?',
     };
-
-    console.log('check the order id here as properly here : ', orderId, productId)
     const alertMessage = messages[action];
     setMessage(alertMessage);
     setOrderId(orderId);
@@ -176,9 +160,7 @@ const OrderDetail = () => {
     try {
       const { jsPDF } = await import('jspdf');
       const order = orders.find((order) => order.orderId === orderId);
-
       if (!order) {
-        console.error("Order not found!");
         return;
       }
       const doc = new jsPDF();
@@ -203,12 +185,22 @@ const OrderDetail = () => {
       doc.text(`Payment Status: ${order.paymentStatus}`, 14, 110);
       doc.text(`Order Status: ${order.status}`, 14, 120);
 
+      doc.setFontSize(14);
+      doc.text("Coupon Details:", 14, 130);
+      if (order.coupon) {
+        doc.setFontSize(12);
+        doc.text(`Coupon Name: ${order.coupon.name}`, 14, 140);
+        doc.text(`Discount Value: ${order.coupon.discountValue}`, 14, 150);
+      } else {
+        doc.text("No Coupons Applied", 14, 140);
+      }
+
       doc.setFontSize(16);
-      doc.text("Ordered Items", 14, 140);
+      doc.text("Ordered Items", 14, 170);
 
       const headers = ["Product Name", "Quantity", "Unit Price", "Total Price"];
       const columnWidths = [70, 30, 40, 40];
-      let currentY = 150;
+      let currentY = 180;
 
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
@@ -249,23 +241,20 @@ const OrderDetail = () => {
       doc.setFontSize(12);
       doc.text("For any queries, contact us at: furniro@gmail.com", 14, currentY);
 
-      // Divider Line
       currentY += 20;
       doc.setLineWidth(0.5);
       doc.line(14, currentY, 200, currentY);
 
-      // Digital Signature
       currentY += 10;
       doc.setFontSize(14);
       doc.text("Furniro", 14, currentY);
       currentY += 8;
       doc.text("CEO: Athul Krishna K S", 14, currentY);
       currentY += 20;
-      doc.text("________________________", 14, currentY); // Signature line
+      doc.text("________________________", 14, currentY);
       currentY += 8;
-      doc.text("Athul Krishna K S", 14, currentY); // Signature name
+      doc.text("Athul Krishna K S", 14, currentY);
 
-      // Save PDF
       doc.save(`invoice_${orderId}.pdf`);
     } catch (error) {
       console.error("Error generating invoice:", error);
@@ -274,23 +263,21 @@ const OrderDetail = () => {
 
   const handleRetryPayment = async (orderId, totalPrice) => {
     try {
-      console.log('Retrying payment for order ID:', orderId, totalPrice);
-  
       const { data } = await axiosInstance.post('/user/createOrder', {
-        amount:totalPrice,
+        amount: totalPrice,
         currency: 'INR',
         userId,
       });
 
-      const { order, user }  = data
-  
+      const { order, user } = data
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_ID_KEY,
-        amount: order.amount, 
+        amount: order.amount,
         currency: 'INR',
         name: 'Furniro Payment',
         description: 'Complete Your Purchase',
-        order_id: order.razorpayOrderId,  
+        order_id: order.razorpayOrderId,
         handler: async (response) => {
           try {
             await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
@@ -298,7 +285,7 @@ const OrderDetail = () => {
               paymentStatus: 'Completed',
               razorpayDetails: response,
             });
-  
+            fetchOrderDetails();
             showSuccessToast('Payment successful! Thank you for your order.');
           } catch (error) {
             showErrorToast('Payment processing failed. Please contact support.');
@@ -318,15 +305,13 @@ const OrderDetail = () => {
           },
         },
       };
-  
+
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error('Error while retrying payment:', error);
       showErrorToast('Failed to fetch order details or initialize payment.');
     }
   };
-  
 
   const steps = [
     { label: 'Pending', icon: <ShoppingCartOutlinedIcon /> },
@@ -394,20 +379,34 @@ const OrderDetail = () => {
               >
                 Status: {order.status}
               </Typography>
-
-              <Typography variant="h6" gutterBottom>Order ID: {order.orderId}</Typography>
-              <Typography variant="h6">User Name: {order.name}</Typography>
-              <Typography variant="h6">Total Price: ₹{order.totalPrice}</Typography>
-              <Typography variant="h6">Payment Method: {order.payment}</Typography>
-              <Typography variant="h6">Payment Status: {order.paymentStatus}</Typography>
-              <Typography variant="h6">
-                Ordered Date: {new Date(order.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#333', marginBottom: '16px', textAlign: 'center' }} > 🛍️ Order Details
               </Typography>
-              <Typography variant="h6">Address: {order.address}</Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>Order ID: <span style={{ color: '#007BFF' }}>{order.orderId}</span></Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>User Name: {order.name}</Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>Total Price: <span style={{ color: '#d9534f', fontWeight: 'bold' }}>₹{order.totalPrice}</span></Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>Payment Method: {order.payment}</Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>Payment Status:<span style={{ fontWeight: 'bold', color: order.paymentStatus === 'Paid' ? '#28a745' : '#d9534f' }}>{order.paymentStatus}</span></Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>
+                Coupon Applied: <span style={{ color: order.coupon ? '#007BFF' : '#6c757d', fontWeight: order.coupon ? 'bold' : 'normal' }}>
+                  {order.coupon?.name || 'No coupons'}
+                </span>
+              </Typography>
+              {order.coupon && (
+                <Typography variant="h6" sx={{ marginBottom: 0, color: 'green' }}>
+                  Coupon Discount: <span style={{ fontWeight: 'bold' }}>{order.coupon?.discountValue}</span>
+                </Typography>
+              )}
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>
+                Ordered Date:
+                <span style={{ color: '#6c757d', marginLeft: '6px' }}>
+                  {new Date(order.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </span>
+              </Typography>
+              <Typography variant="h6" sx={{ marginBottom: 0, color: '#555' }}>Address: {order.address}</Typography>
 
               {/* Progress Bar */}
               <OrderProgress order={order} steps={steps} />

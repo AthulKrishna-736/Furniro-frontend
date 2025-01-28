@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{ useState, useEffect } from 'react';
 import { Box, Typography, Modal, Link, IconButton } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
@@ -6,16 +6,29 @@ import { useNavigate } from 'react-router-dom';
 
 const OrderSuccess = ({ open, onClose, orderDetails }) => {
   const navigate = useNavigate();
+  const [delayedOpen, setDelayedOpen] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => {
+        setDelayedOpen(true);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setDelayedOpen(false);
+    }
+  }, [open]);
 
   const handleClose = (event, reason) => {
     if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
-      onClose(); 
+      onClose();
     }
   };
 
   return (
     <Modal
-      open={open}
+      open={delayedOpen}
       onClose={handleClose}
       sx={{
         backdropFilter: 'blur(5px)',
@@ -119,7 +132,7 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
             color: 'black',
             textDecoration: 'underline',
             cursor: 'pointer',
-            fontWeight: 'normal', 
+            fontWeight: 'normal',
             fontSize: '16px',
             textUnderlineOffset: '4px',
           }}

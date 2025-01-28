@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Box, Typography, Grid } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
-import { showErrorToast, showInfoToast, showSuccessToast } from '../../utils/toastUtils';
+import { showErrorToast, showInfoToast, showSuccessToast, showWarningToast } from '../../utils/toastUtils';
 import { DeleteOutline } from '@mui/icons-material';
 
 const Cart = () => {
@@ -27,35 +27,48 @@ const Cart = () => {
     fetchCart();
   }, [userId]);
 
-  const handleCartUpdate = async (endpoint, payload = {}, callback) => {
+  const handleRemoveItem = async (id) => {
     try {
-      await axiosInstance[endpoint.method](endpoint.url, payload);
-      callback && callback();
+      const response = await axiosInstance.delete(`/user/deleteItem/${id}`);
+      showSuccessToast(response.data.message);
+      fetchCart();
     } catch (error) {
-      showErrorToast(error.response?.data?.message || 'An error occurred');
+      showErrorToast(error.response?.data?.message || 'Failed to remove item');
     }
   };
 
-  const handleRemoveItem = (id) =>
-    handleCartUpdate({ method: 'delete', url: `/user/deleteItem/${id}` }, {}, () => {
-      showSuccessToast('Item removed successfully');
+  // Function to handle quantity change
+  const handleQuantityChange = async (id, action) => {
+    try {
+      setLoadingState((prev) => ({ ...prev, [id]: true }));
+      const response = await axiosInstance.patch(`/user/updateQuantity/${userId}`, {
+        itemId: id,
+        action,
+      });
+      showSuccessToast(response.data.message);
       fetchCart();
-    });
-
-  const handleQuantityChange = (id, action) => {
-    setLoadingState((prev) => ({ ...prev, [id]: true }));
-    handleCartUpdate(
-      { method: 'patch', url: `/user/updateQuantity/${userId}` },
-      { itemId: id, action },
-      fetchCart()
-    ).finally(() => setLoadingState((prev) => ({ ...prev, [id]: false })));
+    } catch (error) {
+      showErrorToast(error.response?.data?.message || 'Failed to update quantity');
+    } finally {
+      setLoadingState((prev) => ({ ...prev, [id]: false }));
+    }
   };
 
   const handleCheckout = async () => {
     try {
       const { data } = await axiosInstance.get(`/user/getCart/${userId}`);
+      if (data.categoryBlockedItems?.length){
+        showWarningToast(`Currently unavailable in your cart: ${data.categoryBlockedItems.map((item) => item.name).join(', ')}`)
+        return;
+      }
       if (data.blockedItems?.length) {
-        showInfoToast(`Blocked items in your cart: ${data.blockedItems.map((item) => item.name).join(', ')}`);
+        showWarningToast(`Currently unavailable in your cart: ${data.blockedItems.map((item) => item.name).join(', ')}`);
+        return;
+      }
+      if (data.stockIssues?.length) {
+        showInfoToast(
+          `Stock issues detected: ${data.stockIssues.map((issue) => `${issue.name} (only ${issue.availableStock} available)`).join(', ')}. Please update quantities to proceed.`
+        );
         return;
       }
       navigate('/checkout');

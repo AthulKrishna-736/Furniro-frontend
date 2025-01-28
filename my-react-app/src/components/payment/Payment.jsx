@@ -3,13 +3,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 
 const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess, orderId }) => {
-  useEffect(()=>{
-    if(orderId){
-      console.log('order id is there');
-    }else{
-      console.log('order id is not there');
-    }
-  },[])
+
   useEffect(() => {
     const handlePayment = async () => {
       try {

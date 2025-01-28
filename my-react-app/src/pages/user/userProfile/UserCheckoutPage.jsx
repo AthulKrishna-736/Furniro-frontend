@@ -29,7 +29,6 @@ const UserCheckoutPage = () => {
   const fetchCart = async () => {
     try {
       const response = await axiosInstance.get(`/user/getCart/${userId}`);
-      console.log('checkout res: ', response.data);
       const items = response?.data?.cart?.items || [];
       setCartItems(items);
       setCartId(response.data?.cart?._id);
@@ -45,7 +44,7 @@ const UserCheckoutPage = () => {
       const response = await axiosInstance.get(`/user/getCoupons`);
       setCoupons(response.data.coupons);
     } catch (error) {
-      consoele.log('error while getting coupons: ', error)
+      console.log('error while getting coupons: ', error)
     }
   }
 
@@ -55,7 +54,6 @@ const UserCheckoutPage = () => {
   }, [userId]);
 
   const handleAddressChange = (addressId) => {
-    console.log('address in function: ', addressId)
     setSelectedAddress(addressId);
   };
 
@@ -78,28 +76,25 @@ const UserCheckoutPage = () => {
       selectedCoupon: selectedCoupon?._id,
       paymentStatus: paymentMethod === 'Wallet' ? 'Completed' : 'Pending',
     };
-    console.log('order data result = ', orderData)
-
-    if (paymentMethod === 'Razorpay') {
-      console.log('Payment method selected: ', paymentMethod);
-      setRazorpayOpen(true);
-    }
-
+  
     await proceedWithOrder(orderData);
   };
-
+  
   const proceedWithOrder = async (orderData) => {
     try {
       const orderResponse = await axiosInstance.post('/user/placeOrder', orderData);
       setOrderDetails(orderResponse.data.order);
-      setOrderId(orderResponse.data.order._id)
+      setOrderId(orderResponse.data.order._id);
       showSuccessToast(orderResponse.data.message);
       await fetchCart();
       setSelectedAddress('');
       setPaymentMethod('');
       setOrderSuccess(true);
+  
+      if (orderData.paymentMethod === 'Razorpay') {
+        setRazorpayOpen(true);
+      }
     } catch (error) {
-      console.error('Error Placing Order: ', error);
       showErrorToast(error.response?.data?.message);
     }
   };

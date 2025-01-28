@@ -79,7 +79,7 @@ const Wallet = () => {
             color: 'primary.main',
           }}
         >
-          ₹{wallet.balance}
+          ₹{wallet.balance.toFixed(2)}
         </Typography>
       </Paper>
 
