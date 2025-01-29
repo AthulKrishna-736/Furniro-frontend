@@ -43,10 +43,8 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
   const requestOtp = async (isResend) => {
     try {
       const response = await axiosInstance.post('/user/createOtp', { email, isSignup: isSignup });
-      console.log('OTP sent:', response?.data);
       showSuccessToast(response?.data?.message);
     } catch (error) {
-      console.error('Error while requesting OTP:', error);
       showErrorToast('Failed to send OTP. Please try again.');
     }
   };
@@ -117,7 +115,6 @@ const OtpFormModal = ({ open, onClose, email, setOtpVerified, isSignup }) => {
   };
   
   const handleResendOtp = () => {
-    console.log('button clicked')
     setOtp(['', '', '', '', '', '']);
     requestOtp();
     startTimer();

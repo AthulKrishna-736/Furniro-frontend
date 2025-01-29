@@ -26,7 +26,7 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
     message: '',
   });
   const [errors, setErrors] = useState({});
-  
+
   const userId = localStorage.getItem('userId');
 
   const handleOpenModal = () => {
@@ -104,7 +104,7 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
     if (!handleValidation()) return;
     try {
       if (formData.id) {
-       const response = await axiosInstance.patch(
+        const response = await axiosInstance.patch(
           `/user/updateAddress/${formData.id}`,
           formData
         );
@@ -123,7 +123,7 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
       showErrorToast(error.response?.data?.message || 'An error occurred');
     }
   };
-  
+
 
   const handleEditAddress = (address) => {
     setFormData({
@@ -177,11 +177,11 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
       >
         <Button
           sx={{
-            fontSize: '1rem', 
+            fontSize: '1rem',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '10px 15px', 
+            padding: '10px 15px',
           }}
           onClick={handleOpenModal}
         >
@@ -208,21 +208,21 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
             >
               {/* Radio Button for Selection */}
               {location.pathname == '/checkout' && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '5px',
-                }}
-              >
-                <Radio
-                  checked={selectedAddress === addr._id}
-                  onChange={() => handleAddressChange(addr._id)}
-                  value={addr._id}
-                  name="selectedAddress"
-                  color="primary"
-                />
-              </Box>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '5px',
+                  }}
+                >
+                  <Radio
+                    checked={selectedAddress === addr._id}
+                    onChange={() => handleAddressChange(addr._id)}
+                    value={addr._id}
+                    name="selectedAddress"
+                    color="primary"
+                  />
+                </Box>
               )}
 
               <Typography
@@ -231,7 +231,7 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
                   fontWeight: 'bold',
                   color: '#333',
                   marginBottom: '8px',
-                  marginLeft: '25px', 
+                  marginLeft: '25px',
                 }}
               >
                 {addr.name}
@@ -291,23 +291,31 @@ const Address = ({ selectedAddress, handleAddressChange }) => {
             </Box>
           ))
         ) : (
-          <Typography>No address added</Typography>
-        )}
+          <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
+            <img
+              src="https://img.freepik.com/free-vector/no-contact-pick-up-delivery-abstract-concept_335657-3054.jpg?t=st=1738158911~exp=1738162511~hmac=b9beaecb75577127f06cffe3e8a9cce2fa4eaa25705aea98802bee28facbb637&w=740"
+              alt="No Address Found"
+              style={{ width: '350px', height: '350px', marginBottom: '10px' }}
+            />
+            <Typography variant="body1" sx={{ fontWeight: '600', color: '#555', fontSize: '30px', marginTop: '20px' }}>
+              No address added
+            </Typography>
+          </Box>)}
       </>
 
       {/* Add/Edit Address Modal */}
-      <AddressModal 
-      open={open} 
-      handleCloseModal={handleCloseModal} 
-      handleSaveAddress={handleSaveAddress}
-      formData={formData}
-      errors={errors}
-      states={states}
-      handleInputChange={handleInputChange}
+      <AddressModal
+        open={open}
+        handleCloseModal={handleCloseModal}
+        handleSaveAddress={handleSaveAddress}
+        formData={formData}
+        errors={errors}
+        states={states}
+        handleInputChange={handleInputChange}
       />
 
-    {/* Delete Confirmation Dialog */}
-    <AlertConfirm open={confirmationOpen} onCancel={handleCancelDelete} onConfirm={handleConfirmDelete} message={'Are you sure you want to delete this address?'}/>
+      {/* Delete Confirmation Dialog */}
+      <AlertConfirm open={confirmationOpen} onCancel={handleCancelDelete} onConfirm={handleConfirmDelete} message={'Are you sure you want to delete this address?'} />
     </Box>
   );
 };

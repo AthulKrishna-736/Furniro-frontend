@@ -18,7 +18,6 @@ const Wallet = () => {
     try {
       const userId = localStorage.getItem('userId');
       const response = await axiosInstance.get(`/user/getWallet/${userId}`,{ params:{ page:page } });
-      console.log('res wallet: ', response.data)
       setPagination(response.data?.pagination)
       setWallet(response.data.wallet);
     } catch (error) {

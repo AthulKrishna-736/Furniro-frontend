@@ -86,7 +86,7 @@ const ExpandedOrder = ({ order, handleAlertClick }) => {
                 </Typography>
 
                 {/* Return Request Status */}
-                {isDelivered && !isNotRequested && (
+                {item.returnRequest?.status !== 'Not Requested' && item.returnRequest?.status  && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <Typography variant="body2" sx={{ fontSize: '14px', color: '#dc3545', fontWeight: 500 }}>
                       Return Status: {item.returnRequest.status}

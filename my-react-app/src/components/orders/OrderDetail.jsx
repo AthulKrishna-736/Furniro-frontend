@@ -36,6 +36,7 @@ const OrderDetail = () => {
     try {
       const response = await axiosInstance.get(`/user/getOrder/${userId}?page=${page}`);
       const { orders, pagination } = response.data;
+      console.log('check the orders: ', orders)
       setOrders(orders);
       setPagination(pagination);
     } catch (error) {
@@ -344,16 +345,23 @@ const OrderDetail = () => {
         }}
       >
         {orders.length == 0 ? (
-          <Typography variant="h6" align="center" color="textSecondary" sx={{ marginTop: '20px' }}>
-            No orders are made till now.{' '}
-            <Typography
-              component="span"
-              sx={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}
-              onClick={() => navigate('/products')}
-            >
-              Shop Now
-            </Typography>
-          </Typography>
+              <Box sx={{ textAlign: 'center', marginTop: '30px' }}>
+              <img
+                src="https://img.freepik.com/free-vector/happy-couple-shopping-together_74855-7462.jpg?t=st=1738159534~exp=1738163134~hmac=534acb861e04ae664c36860d742c68f2e230b64425ffe5750982a1d861dedfba&w=900"L
+                alt="No Orders"
+                style={{ width: '350px', height: '350px', marginBottom: '10px' }}
+              />
+              <Typography variant="h6" align="center" color="textSecondary" sx={{ marginTop: '20px', fontSize: '25px' }}>
+                No orders are made till now.{' '}
+                <Typography
+                  component="span"
+                  sx={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline', fontSize: '25px' }}
+                  onClick={() => navigate('/products')}
+                >
+                  Shop Now
+                </Typography>
+              </Typography>
+            </Box>
         ) : (
           orders.map((order) => (
             <Box key={order.orderId} sx={{ border: '1px solid #ddd', padding: '20px', marginBottom: '20px', position: 'relative' }}>

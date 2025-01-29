@@ -29,6 +29,7 @@ export const validateFieldsReq = (formData)=>{
     if (!formData.lastName) fieldErrors.lastName = 'Last Name is required';
     if (!formData.email) fieldErrors.email = 'Email is required';
     if (!formData.password) fieldErrors.password = 'Password is required';
+    if (!formData.confirmPassword) fieldErrors.confirmPassword = 'Confirm Password is required'
     return Object.keys(fieldErrors).length > 0 ? fieldErrors : null;
 }
 

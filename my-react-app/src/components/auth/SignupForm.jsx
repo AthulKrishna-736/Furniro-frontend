@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { TextField, Button, Typography, Container, Box, Grid } from '@mui/material';
+import { TextField, Button, Typography, Container, Box, Grid, InputAdornment, IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axiosInstance from '../../utils/axiosInstance';
 import { validateFname, validateLname, validateEmail, validatePass, validateFieldsReq } from '../../utils/validation';
 import { useNavigate } from 'react-router-dom';
@@ -11,15 +12,18 @@ const SignUpForm = () => {
 
     const [otpModalOpen, setOtpModalOpen] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
         password: '',
+        confirmPassword: '',
     });
     const [errors, setErrors] = useState({});
-    const { firstName, lastName, email, password } = formData;
+    const { firstName, lastName, email, password, confirmPassword } = formData;
 
     useEffect(() => {
         if (otpVerified) {
@@ -41,16 +45,6 @@ const SignUpForm = () => {
                 [name]: '',
             }));
         }
-
-        if (name === 'confirmPassword' || name === 'password') {
-            setErrors((prevErrors) => ({
-                ...prevErrors,
-                confirmPassword:
-                    name === 'confirmPassword' && value !== formData.password
-                        ? 'Passwords do not match'
-                        : '',
-            }));
-        }
     };
 
     const validateForm = () => {
@@ -61,23 +55,44 @@ const SignUpForm = () => {
         }
 
         const newErrors = {};
-        newErrors.firstName = validateFname(firstName);
-        newErrors.lastName = validateLname(lastName);
-        newErrors.email = validateEmail(email);
-        newErrors.password = validatePass(password);
+        newErrors.firstName = validateFname(formData.firstName);
+        newErrors.lastName = validateLname(formData.lastName);
+        newErrors.email = validateEmail(formData.email);
+        newErrors.password = validatePass(formData.password);
+
+        if (formData.confirmPassword !== formData.password) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        } else {
+            newErrors.confirmPassword = '';
+        }
+
         setErrors(newErrors);
 
         return Object.values(newErrors).every((error) => !error);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
 
-        if (!validateForm()) return;
+    const finalSubmit = async () => {
+        if (!otpVerified) {
+            setOtpModalOpen(true);
+            return;
+        }
 
         try {
+            const response = await axiosInstance.post('/user/signup', formData);
+            showSuccessToast(response?.data?.message);
+
+            setTimeout(() => navigate('/login'), 1000);
+        } catch (error) {
+            showErrorToast(error.response?.data?.message);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
+        try {
             const checkuser = await axiosInstance.post('/user/checkUser', { email });
-            console.log('check user signup = ', checkuser);
 
             if (checkuser?.data?.message === 'User not found. Proceed to signup.') {
                 setOtpModalOpen(true);
@@ -90,23 +105,6 @@ const SignUpForm = () => {
             setOtpModalOpen(false);
             console.log(error?.response?.data?.message || 'An error occurred. Please try again later.');
             return;
-        }
-    };
-
-    const finalSubmit = async () => {
-        if (!otpVerified) {
-            setOtpModalOpen(true);
-            console.log('Please verify the OTP before signing up.');
-            return;
-        }
-
-        try {
-            const response = await axiosInstance.post('/user/signup', formData);
-            showSuccessToast(response?.data?.message);
-
-            setTimeout(() => navigate('/login'), 1000);
-        } catch (error) {
-            showErrorToast(error.response?.data?.message);
         }
     };
 
@@ -175,24 +173,48 @@ const SignUpForm = () => {
                                 margin="normal"
                                 label="Password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 value={formData.password}
                                 onChange={handleChange}
                                 error={!!errors.password}
                                 helperText={errors.password}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPassword((prev) => !prev)}
+                                                edge="end"
+                                            >
+                                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 margin="normal"
-                                label="Confirm Password"
+                                label="ConfirmPassword"
                                 name="confirmPassword"
-                                type="password"
+                                type={showConfirmPassword ? 'text' : 'password'}
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 error={!!errors.confirmPassword}
                                 helperText={errors.confirmPassword}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                                edge="end"
+                                            >
+                                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         </Grid>
                         <Grid item xs={12}>

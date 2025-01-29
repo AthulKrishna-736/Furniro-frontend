@@ -57,7 +57,7 @@ const Cart = () => {
   const handleCheckout = async () => {
     try {
       const { data } = await axiosInstance.get(`/user/getCart/${userId}`);
-      if (data.categoryBlockedItems?.length){
+      if (data.categoryBlockedItems?.length) {
         showWarningToast(`Currently unavailable in your cart: ${data.categoryBlockedItems.map((item) => item.name).join(', ')}`)
         return;
       }
@@ -73,7 +73,7 @@ const Cart = () => {
       }
       navigate('/checkout');
     } catch (error) {
-      showErrorToast('Error during checkout. Please try again.');
+      showErrorToast(error.response.data.message || 'Error during checkout. Please try again.');
     }
   };
 
@@ -92,22 +92,22 @@ const Cart = () => {
             }}
           >
             {cartItems.length === 0 ? (
-              <Typography
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: '20px',
-                  backgroundColor: '#fff',
-                  borderRadius: '5px',
-                  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                }}
-              >
-                Oops, your cart is empty!
-              </Typography>
+              <Box sx={{ textAlign: 'center', padding: '30px' }}>
+                <img
+                  src="https://img.freepik.com/free-vector/supermarket-shopping-cart-concept-illustration_114360-22408.jpg?t=st=1738159794~exp=1738163394~hmac=02cc40e4cc7ccc6eb1eb06837f8fece2ab8257b5b6303f4cef6bdcc1f04a3184&w=740" 
+                  alt="Empty Cart"
+                  style={{ width: '300px', height: '300px', marginBottom: '20px' }}
+                />
+                <Typography
+                  sx={{
+                    textAlign: 'center',
+                    fontWeight: 400,
+                    fontSize: '30px'
+                  }}
+                >
+                  Oops, your cart is empty!
+                </Typography>
+              </Box>
             ) : (
               cartItems.map((item) => (
                 <Box

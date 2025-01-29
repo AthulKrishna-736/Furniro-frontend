@@ -52,24 +52,21 @@ const Wishlist = () => {
   return (
     <Box sx={{ padding: '20px' }}>
       {wishlistItems.length === 0 ? (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '20px',
-            backgroundColor: '#fff',
-            borderRadius: '5px',
-            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-            color: '#333',
-            fontSize: '20px',
-            textAlign: 'center',
-            border: '1px solid #ddd',
-            marginBottom: '20px',
-          }}
-        >
-          Oops, your wishlist is empty!
-        </Box>
+            <Box sx={{ textAlign: 'center', padding: '30px' }}>
+            <img
+              src="https://img.freepik.com/premium-vector/flat-illustration-character-checking-his-wishes-list_67813-29229.jpg?w=740" 
+              alt="Empty Wishlist"
+              style={{ width: '300px', height: '300px', marginBottom: '20px' }}
+            />
+            <Typography
+              sx={{
+              textAlign: 'center',
+              fontSize: '25px',
+              }}
+            >
+              Oops, your wishlist is empty!
+            </Typography>
+          </Box>
       ) : (
         <Box
           sx={{
@@ -112,7 +109,7 @@ const Wishlist = () => {
                   marginBottom: { xs: '10px', sm: '0' },
                   marginRight: { xs: '0', sm: '20px' },
                   borderRadius: '10px',
-                  overflow: 'hidden', // Ensures the image is contained
+                  overflow: 'hidden', 
                   boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)',
                 }}
               >
@@ -122,7 +119,7 @@ const Wishlist = () => {
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover', // Ensures the image fills the box proportionally
+                    objectFit: 'cover',
                   }}
                 />
               </Box>
@@ -157,7 +154,7 @@ const Wishlist = () => {
                       }}
                       onClick={() => handleAddToCartSingle(item.productId._id)}
                     >
-                      <ShoppingCartCheckout />
+                      <ShoppingCart3Checkout />
                     </IconButton>
                   </Box>
                 </Box>
