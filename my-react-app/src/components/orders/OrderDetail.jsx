@@ -36,7 +36,6 @@ const OrderDetail = () => {
     try {
       const response = await axiosInstance.get(`/user/getOrder/${userId}?page=${page}`);
       const { orders, pagination } = response.data;
-      console.log('check the orders: ', orders)
       setOrders(orders);
       setPagination(pagination);
     } catch (error) {

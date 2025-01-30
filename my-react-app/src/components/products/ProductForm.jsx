@@ -71,7 +71,6 @@ const ProductForm = ({ categories, openModal, closeModal, productToEdit, fetchPr
   //form inputs changes here
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Updating ${name} to ${value}`);
     setFormData({ ...formData, [name]: value });
     setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
@@ -112,7 +111,6 @@ const handleImageUpload = (e, index) => {
       [`image_${index}`]: "", // Clear error
     }));
 
-    console.log(`Image ${index} uploaded and added to localImages.`);
   };
 
   reader.readAsDataURL(file);
@@ -142,7 +140,6 @@ const handleCrop = (index) => {
         });
 
         setCropModal({ open: false, index: null }); 
-        console.log(`Image cropped for index: ${index}`);
       },
       "image/png",
       1
@@ -170,12 +167,10 @@ const handleCrop = (index) => {
   });
     
     setErrors(newErrors);
-    console.log('errors',newErrors)
     return Object.values(newErrors).every((error) => !error);
   };
 
   const uploadImages = async (localImages, cropPreviews, cloudinaryImages) => {
-    console.log("Starting image upload...");
     
     // Combine cropped and uncropped images dynamically
     const imagesToUpload = localImages.map((image, index) => {
@@ -185,13 +180,11 @@ const handleCrop = (index) => {
       return image; // Use original image otherwise
     });
   
-    console.log("Images prepared for upload:", imagesToUpload);
   
     const uploadPromises = imagesToUpload.map((image, index) => {
       if (image instanceof File || typeof image === "string") {
         // If it's a File or base64 string (newly uploaded), upload to Cloudinary
         if (image instanceof File) {
-          console.log(`Uploading local image at index ${index}...`);
           const imageFormData = new FormData();
           imageFormData.append("file", image);
           imageFormData.append("upload_preset", "Furniro_Images");
@@ -201,7 +194,6 @@ const handleCrop = (index) => {
             imageFormData
           );
         } else {
-          console.log(`Uploading base64 image at index ${index}...`);
           const imageFormData = new FormData();
           imageFormData.append("file", image);
           imageFormData.append("upload_preset", "Furniro_Images");
@@ -213,18 +205,14 @@ const handleCrop = (index) => {
         }
       }
       // If the image is already a Cloudinary URL, skip re-upload
-      console.log(`Retaining existing Cloudinary image at index ${index}:`, cloudinaryImages[index]);
       return Promise.resolve({ data: { secure_url: cloudinaryImages[index] } });
     });
   
-    console.log("Awaiting image uploads...");
     const uploadResults = await Promise.all(uploadPromises);
-    console.log("All image uploads completed:", uploadResults);
   
     // Extract Cloudinary URLs from responses
     const secureUrls = uploadResults.map((res) => res.data.secure_url);
   
-    console.log("Final secure URLs:", secureUrls);
     return secureUrls;
   };
   

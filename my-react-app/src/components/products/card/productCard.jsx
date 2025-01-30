@@ -30,7 +30,6 @@ const ProductCard = ({ product = {}, variant = "default" }) => {
   };
 
   const handleCardClick = () => {
-    console.log('Product here:', product);
     if (product._id) {
       navigate(`/product-detail/${product._id}`);
     }

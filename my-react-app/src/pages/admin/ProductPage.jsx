@@ -25,7 +25,6 @@ const ProductPage = () => {
   };
 
   useEffect(() => {
-    console.log('Updated categories:', categories);
     fetchCategories();
   }, []); 
 

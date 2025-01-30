@@ -155,15 +155,12 @@ const CouponTable = () => {
 
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
-    console.log('log check here: ', newCoupon);
 
     const errors = validateForm(newCoupon);
-    console.log('check error here: ', errors)
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
       return;
     }
-    console.log('req going to backend here')
     try {
       const response = await axiosInstance.post("/admin/createCoupon", newCoupon);
       showSuccessToast(response.data.message);

@@ -29,9 +29,7 @@ const CategoryPage = () => {
 
   const blockCategory = async (id) => {
     try {
-      console.log('category is getting blocked...')
       const response = await axiosInstance.patch(`/admin/blockCategory/${id}`)
-      console.log('blocked category ', response.data)
       toast.success(response?.data?.message)
       setCategories((prev) =>
         prev.map((cat) =>

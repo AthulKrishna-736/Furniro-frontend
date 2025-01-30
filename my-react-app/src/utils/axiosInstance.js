@@ -25,7 +25,6 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     const { status, data } = error?.response;
-    console.log('status code and data: ', [status, data, data?.message]);
 
     if (error.response && error.response.status == 403 && error.response?.data?.message == 'User is blocked.') {
       const { isBlocked, message } = error.response?.data;
@@ -89,7 +88,6 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          console.log('Error happened during token refresh:', refreshError.response?.data);
 
           // Handle specific cases for invalid or missing refresh token
           if (

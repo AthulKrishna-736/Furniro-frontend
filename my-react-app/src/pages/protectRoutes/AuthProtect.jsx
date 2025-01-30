@@ -7,7 +7,6 @@ const AuthProtect = ({ children }) => {
   useEffect(() => {
     const userId = localStorage.getItem('userId'); 
     if (userId) {
-      console.log('User is authenticated, redirecting to /home...');
       navigate('/home'); 
     }
   }, [navigate]);

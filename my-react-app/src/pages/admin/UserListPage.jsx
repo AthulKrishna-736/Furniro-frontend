@@ -13,7 +13,6 @@ const UserListPage = () => {
   const getUsers = async()=>{
       try {
           const response = await axiosInstance.get('/admin/getUsers')
-          console.log('successfully got user')
           console.table(response.data?.users)
           setUsers(response.data.users)
       } catch (error) {
@@ -27,9 +26,7 @@ const UserListPage = () => {
 
   const blockUser = async (id) => {
     try {
-        console.log('user id in block ', id)
         const response = await axiosInstance.patch(`/admin/blockUser/${id}`)
-        console.log('user bloccked ', response.data)
         toast.success(response?.data?.message)
         setUsers((prev)=>
         prev.map((user)=>

@@ -27,7 +27,6 @@ const ProductTable = ({ categories }) => {
         try {
             const response = await axiosInstance.get('/admin/getProducts');
             setProducts(response.data?.products || []); 
-            console.log(response.data?.products)
         } catch (error) {
             toast.error(error.response?.data?.message)
             console.log('Error fetching products:', error.response?.data || error.message);
@@ -41,10 +40,8 @@ const ProductTable = ({ categories }) => {
 
     //block product
     const handleBlockProduct = async(id)=>{
-        console.log('check product id block = ', id);
         try {
             const response = await axiosInstance.patch(`/admin/blockProduct/${id}`)
-            console.log('res from block product = ', response.data)
             
             toast.success(response?.data?.message);
 

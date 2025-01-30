@@ -54,7 +54,6 @@ const AdminBanner = () => {
 
 
   const updateBanner = async (id, image) => {
-    console.log('check data in updatae ban',[id, image])
     setIsUploading(true);
     try {
       let imageUrl = image;
@@ -62,7 +61,6 @@ const AdminBanner = () => {
       if (image.startsWith('data:image')) {
         const imageResponse = await uploadImageToCloudinary(image);
         imageUrl = imageResponse.secure_url;
-        console.log('imgurl  - ', imageUrl)
       }
   
       const response = await axiosInstance.patch(`/admin/editBanners/${id}`, {

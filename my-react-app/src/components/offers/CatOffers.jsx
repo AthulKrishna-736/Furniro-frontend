@@ -30,7 +30,6 @@ const CatOffers = () => {
         axiosInstance.get('/admin/getCat'),
         axiosInstance.get('/admin/getCatOffers'),
       ]);
-      console.log('offers res = ', offerResponse.data.offers)
       setCategories(categoryResponse.data.categories || []);
       setOffers(offerResponse.data.offers || []);
     } catch (error) {
@@ -80,7 +79,6 @@ const CatOffers = () => {
     try {
       if (selectedOffer) {
         const response = await axiosInstance.patch(`/admin/blockCatOffer/${selectedOffer}`);
-        console.log('block check ', response.data)
         showSuccessToast(response.data.message);
         setBlockOpen(false);
         fetchData();

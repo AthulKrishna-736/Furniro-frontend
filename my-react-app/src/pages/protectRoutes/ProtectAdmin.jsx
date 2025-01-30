@@ -7,7 +7,6 @@ const ProtectAdmin = ({ children }) => {
     useEffect(() => {
         const adminId = localStorage.getItem('adminId'); 
         if (!adminId) {
-            console.log('Admin is not authenticated. Redirecting to /admin-login...');
             navigate('/admin-login'); 
         }
     }, [navigate]);

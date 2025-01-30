@@ -33,9 +33,7 @@ const CategoryForm = ({ categories, setCategories, categoryToEdit, onClose }) =>
     }
     try {
         if(categoryToEdit){
-            console.log('updating category')
             const response = await axiosInstance.patch(`/admin/updateCategory/${categoryToEdit._id}`,{ name, description })
-            console.log('category updated: ', response.data.category);
 
             setCategories((prev) => 
               prev.map((category) =>
@@ -46,7 +44,6 @@ const CategoryForm = ({ categories, setCategories, categoryToEdit, onClose }) =>
             onClose();
 
         }else{
-            console.log('adding cateogory')
             const response = await axiosInstance.post('/admin/addCategory', { name, description })
             setCategories((prev) => [...prev, response.data.category]);
             toast.success(response?.data?.message)

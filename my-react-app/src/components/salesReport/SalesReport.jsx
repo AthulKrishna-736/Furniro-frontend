@@ -45,7 +45,6 @@ const SalesReport = () => {
       
       if (response && response.data) {
         const { data } = response; 
-        console.log('Date range sales data:', data);
         setSalesData(data);
       } else {
         console.error('No data received in the response');
