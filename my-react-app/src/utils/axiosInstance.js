@@ -63,7 +63,6 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log('Interceptor jwt triggered...');
 
     if (error.response) {
       const { status, data } = error.response;
@@ -75,7 +74,6 @@ axiosInstance.interceptors.response.use(
       }
 
       if (status === 403 && data.message === 'Invalid or revoked access token') {
-        console.log('Invalid or revoked access token detected.');
         showCustomAlert('Your session has expired or is invalid. Please log in again.', true);
         return Promise.reject(error);
       }
@@ -83,9 +81,7 @@ axiosInstance.interceptors.response.use(
       // Handle access token expiration
       if (status === 401 && data.message === 'Access token not provided') {
         try {
-          console.log('Attempting to refresh access token...');
           const refreshResponse = await axiosInstance.post('/user/refreshToken', {}, { withCredentials: true });
-          console.log('Token refreshed successfully:', refreshResponse.data?.message);
 
           const newAccessToken = refreshResponse.data.accessToken;
 
@@ -100,7 +96,6 @@ axiosInstance.interceptors.response.use(
             refreshError.response?.status === 403 &&
             ['Refresh token not found', 'Invalid refresh token'].includes(refreshError.response?.data?.message)
           ) {
-            console.log('Invalid or missing refresh token. Logging out the user...');
             showCustomAlert('Your session has expired. Please log in again.');
           }
         }

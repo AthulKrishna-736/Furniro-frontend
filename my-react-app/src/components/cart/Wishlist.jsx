@@ -154,7 +154,7 @@ const Wishlist = () => {
                       }}
                       onClick={() => handleAddToCartSingle(item.productId._id)}
                     >
-                      <ShoppingCart3Checkout />
+                      <ShoppingCartCheckout />
                     </IconButton>
                   </Box>
                 </Box>
