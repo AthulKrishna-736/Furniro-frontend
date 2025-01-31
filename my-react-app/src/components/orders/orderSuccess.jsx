@@ -12,7 +12,7 @@ const OrderSuccess = ({ open, onClose, orderDetails }) => {
     if (open) {
       const timer = setTimeout(() => {
         setDelayedOpen(true);
-      }, 2000);
+      }, 1000);
 
       return () => clearTimeout(timer);
     } else {

@@ -209,7 +209,7 @@ const UserCheckoutPage = () => {
                           marginBottom: '5px',
                         }}
                       >
-                        Price: ₹{item.productId.salesPrice}
+                        Price: ₹{item.price}
                       </Typography>
                     </Box>
 

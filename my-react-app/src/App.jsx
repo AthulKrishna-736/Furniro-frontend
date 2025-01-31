@@ -30,7 +30,6 @@ import UserWishlistPage from './pages/user/userProfile/UserWishlistPage'
 import UserWalletPage from './pages/user/userProfile/UserWalletPage'
 import AdminCoupon from './pages/admin/AdminCoupon'
 import CatOfferPage from './pages/admin/CatOfferPage'
-import ScrollToTop from './utils/ScrollControl'
 import SalesReportPage from './pages/admin/SalesReportPage'
 import ProtectAdmin from './pages/protectRoutes/ProtectAdmin'
 import ErrorPage from './pages/ErrorPage'
@@ -43,7 +42,6 @@ const App = () => {
     <GoogleOAuthProvider clientId={googleClientId}>
     <Provider store={store}>
     <Router>
-      <ScrollToTop />
       <Routes>
 
       <Route path='/' element={<LandingPage/>} />

@@ -5,7 +5,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 
 const GoogleAuth = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleLogin = async (response) => {
     try {
       if (response.credential) {
@@ -21,19 +21,23 @@ const GoogleAuth = () => {
         navigate('/home');
       }
     } catch (error) {
-      showErrorToast('Google login failed');
+      if (error.response && error.response.status === 403) {
+        showErrorToast('Your account is blocked by the admin. Please contact support.');
+      } else {
+        showErrorToast('Google login failed. Please try again.');
+      }
       console.error(error);
-    }
-  };
+  }
+};
 
-  return (
-    <div>
-      <GoogleLogin
-        onSuccess={handleLogin}
-        onError={() => showErrorToast('Google login failed')}
-      />
-    </div>
-  );
+return (
+  <div>
+    <GoogleLogin
+      onSuccess={handleLogin}
+      onError={() => showErrorToast('Google login failed')}
+    />
+  </div>
+);
 };
 
 export default GoogleAuth;
