@@ -13,7 +13,7 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess, o
           userId,
         });
 
-        const { order, user }  = data
+        const { order, user } = data
 
         const options = {
           key: import.meta.env.VITE_RAZORPAY_ID_KEY,
@@ -51,10 +51,23 @@ const PaymentComponent = ({ userId, amount, setRazorpayOpen, onPaymentSuccess, o
           },
         };
 
+        if(!window.Razorpay) {
+          showErrorToast('payment gateway failed please try again later.')
+        }
+
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } catch (error) {
+        console.log('error while razorpay: ', error)
         showErrorToast('Error initializing payment. Please try again.');
+        try {
+          await axiosInstance.put(`/user/updateOrderPaymentStatus`, {
+            orderId,
+            paymentStatus: 'Failed',
+          });
+        } catch (fallbackError) {
+          console.error('Failed to update payment status: ', fallbackError);
+        }
       }
     };
 
